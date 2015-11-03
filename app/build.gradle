@@ -17,17 +17,26 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    packagingOptions {
+        exclude 'META-INF/eclipse.inf'
+    }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.1.0'
-    compile files('libs/httpcore-4.0.1.jar')
-    compile files('libs/jetty-policy-8.1.16.v20140903.jar')
-    compile files('libs/jetty-security-8.1.16.v20140903.jar')
-    compile files('libs/jetty-util-8.1.16.v20140903.jar')
-    compile files('libs/jetty-webapp-8.1.16.v20140903.jar')
-    compile files('libs/servlet-api-3.0.jar')
     compile project(':mdua')
-    compile files('libs/jetty-io-8.1.16.v20140903.jar')
+    compile files('libs/httpcore-4.0.1.jar')
+    compile files('libs/servlet-api-3.0.jar')
+    compile files('libs/org.eclipse.jetty.http_8.1.18.v20150929.jar')
+    compile files('libs/org.eclipse.jetty.io_8.1.18.v20150929.jar')
+    compile files('libs/org.eclipse.jetty.server_8.1.18.v20150929.jar')
+    compile files('libs/org.eclipse.jetty.util_8.1.18.v20150929.jar')
+    compile files('libs/org.eclipse.jetty.webapp_8.1.18.v20150929.jar')
+    compile files('libs/org.eclipse.jetty.policy_8.1.18.v20150929.jar')
+    compile files('libs/org.eclipse.jetty.security_8.1.18.v20150929.jar')
+    compile files('libs/org.eclipse.jetty.client_8.1.18.v20150929.jar')
+    compile files('libs/org.eclipse.jetty.continuation_8.1.18.v20150929.jar')
+    compile files('libs/org.eclipse.jetty.nested_8.1.18.v20150929.jar')
+    compile files('libs/org.eclipse.jetty.plus_8.1.18.v20150929.jar')
 }
