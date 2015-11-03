@@ -1,5 +1,7 @@
 package net.tetrakoopa.mdu.android.util;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -19,7 +21,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class NetworkUtil {
-	
+
+	public static ExternalIPProvider SOME_IP_PROVIDERS[] = {
+			new HTTPExternalIPProviderWithResponseThroughRegex("http://checkip.dyndns.org","<body>.*Current IP Address: (.*).*</body>"),
+			new HTTPExternalIPProviderWithRawResponse("http://icanhazip.com"),
+			new HTTPExternalIPProviderWithRawResponse("http://api.externalip.net/ip")
+	};
+
 
 	public static String getIPAddress(boolean useIPV4) throws SocketException {
 		for (NetworkInterface interfaace : Collections.list(NetworkInterface.getNetworkInterfaces())) {
@@ -45,7 +53,7 @@ public class NetworkUtil {
 		return !address.isLoopbackAddress() && (address instanceof Inet4Address);
 	}
 
-	public static String excuteHttpRequest(String targetURL, Map<String, Object> parameters) {
+	public static String excuteHttpRequest(String targetURL, Map<String, Object> parameters, boolean post) throws IOException {
 		URL url;
 		HttpURLConnection connection = null;
 
@@ -56,8 +64,12 @@ public class NetworkUtil {
 			// Create connection
 			url = new URL(targetURL);
 			connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("POST");
-			connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			if (post) {
+				connection.setRequestMethod("POST");
+				connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			} else {
+				connection.setRequestMethod("GET");
+			}
 
 			connection.setRequestProperty("Content-Length", "" + Integer.toString(urlParameters.getBytes().length));
 			connection.setRequestProperty("Content-Language", "en-US");
@@ -84,9 +96,6 @@ public class NetworkUtil {
 			rd.close();
 			return response.toString();
 
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
 		} finally {
 
 			if (connection != null) {
@@ -127,19 +136,36 @@ public class NetworkUtil {
 		protected abstract String extractIP(String response);
 
 		public final String getIP() {
-			return extractIP(excuteHttpRequest(uri, null));
+			try {
+				return extractIP(excuteHttpRequest(uri, null, false));
+			} catch (IOException ioex) {
+				Log.i("HTTPExternalIPProvider", "Failed to find out IP from '" + uri + "' : " + ioex.getLocalizedMessage());
+				return null;
+			}
 		}
 	}
 
-	private static class DyndnsExternalIPProvider extends HTTPExternalIPProvider {
-
-		public DyndnsExternalIPProvider() {
-			super("checkip.dyndns.org");
+	public static class HTTPExternalIPProviderWithRawResponse extends HTTPExternalIPProvider {
+		public HTTPExternalIPProviderWithRawResponse(String uri) {
+			super(uri);
 		}
 
 		@Override
-		public String extractIP(String response) {
-			Pattern p = Pattern.compile("<body>Current IP Address: (.*)</body>");
+		protected String extractIP(String response) {
+			return response;
+		}
+
+	}
+	public static class HTTPExternalIPProviderWithResponseThroughRegex extends HTTPExternalIPProvider {
+		final String regex;
+		public HTTPExternalIPProviderWithResponseThroughRegex(String uri, String regex) {
+			super(uri);
+			this.regex = regex;
+		}
+
+		@Override
+		protected String extractIP(String response) {
+			Pattern p = Pattern.compile(regex);
 			Matcher m = p.matcher(response);
 			if (m.find())
 				return m.group(1);
@@ -148,31 +174,8 @@ public class NetworkUtil {
 
 	}
 
-	private static class ICanHazIPIPProviver extends HTTPExternalIPProvider {
-		public ICanHazIPIPProviver() {
-			super("icanhazip.com");
-		}
+	public static String getIPAddressFromExternalProviders(ExternalIPProvider providers[]) {
 
-		@Override
-		protected String extractIP(String response) {
-			return response;
-		}
-	}
-
-	private static class ExternalIPDotNetIPProviver extends HTTPExternalIPProvider {
-		public ExternalIPDotNetIPProviver() {
-			super("api.externalip.net/ip");
-		}
-
-		@Override
-		protected String extractIP(String response) {
-			return response;
-		}
-	}
-
-	public static String getIPAddressFromExternalProvider() {
-
-		ExternalIPProvider providers[] = { new DyndnsExternalIPProvider(), new ICanHazIPIPProviver(), new ExternalIPDotNetIPProviver() };
 		for ( ExternalIPProvider provider : providers ) {
 			String response = provider.getIP();
 			if (response != null)

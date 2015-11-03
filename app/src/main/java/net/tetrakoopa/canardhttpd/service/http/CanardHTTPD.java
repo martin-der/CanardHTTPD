@@ -26,11 +26,13 @@ import net.tetrakoopa.canardhttpd.util.TemporaryMimeTypeUtil;
 import org.apache.http.HttpRequest;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
+//import org.eclipse.jetty.server.HttpConfiguration;
+//import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
+//import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
@@ -63,43 +65,85 @@ public class CanardHTTPD extends Server {
 
 	private final Map<HttpRequest, SharedThing> downloads = new HashMap<HttpRequest, SharedThing>();
 
-	private final SslSocketConnector channelConnectorSSL;
-	private final SelectChannelConnector channelConnector;
 
 	public CanardHTTPD(Context context, SharesManager sharesManager, String hostname, int port, int sercurePort, String keyStorePath, String keyStorePassord) {
 		this.sharesManager = sharesManager;
 		this.context = context;
 		this.groupWriter = new GroupWriter();
 
+		init_Jetty_v8(port, sercurePort, keyStorePath, keyStorePassord);
+	}
+
+	private void init_Jetty_v8(int port, int sercurePort, String keyStorePath, String keyStorePassord) {
+		final Connector connectorSSL_v8;
+		final Connector connector_v8;
+
 		final SslContextFactory sslContextFactory = new SslContextFactory(true);
 		sslContextFactory.setKeyStorePassword(keyStorePassord);
 
-		SslSocketConnector maybeChannelConnectorSSL = null;
+		Connector maybeChannelConnectorSSL = null;
 		try {
-			maybeChannelConnectorSSL = new SslSocketConnector(sslContextFactory);
+			//maybeChannelConnectorSSL = new SslSelectChannelConnector(sslContextFactory);
 		}catch (Exception ex) {
 			Log.e(CanardHTTPDService.TAG, "Could not build SslSocketConnector : "+ex.getMessage(), ex);
 		}
-		channelConnectorSSL = null; //	maybeChannelConnectorSSL;
-		channelConnector = new SelectChannelConnector();
+		connectorSSL_v8 = null; //	maybeChannelConnectorSSL;
+		connector_v8 = new SelectChannelConnector();
 
-		if (channelConnectorSSL!=null) {
-			channelConnectorSSL.setPort(sercurePort);
-			channelConnectorSSL.setMaxIdleTime(MAX_IDLE_TIME);
-			channelConnectorSSL.setReuseAddress(true);
+
+		if (connectorSSL_v8 !=null) {
+			connectorSSL_v8.setPort(sercurePort);
+			connectorSSL_v8.setMaxIdleTime(MAX_IDLE_TIME);
 		}
 
-		channelConnector.setPort(port);
-		channelConnector.setMaxIdleTime(MAX_IDLE_TIME);
-		channelConnector.setAcceptors(2);
-		channelConnector.setConfidentialPort(18083);
+		connector_v8.setPort(port);
+		connector_v8.setMaxIdleTime(MAX_IDLE_TIME);
+		//connector_v8.setAcceptQueueSize(2);
 
-		if (channelConnectorSSL!=null) {
-			this.setConnectors(new Connector[] { channelConnectorSSL, channelConnector });
+		if (connectorSSL_v8 !=null) {
+			this.setConnectors(new Connector[] {connectorSSL_v8, connector_v8 });
 		} else {
-			this.setConnectors(new Connector[] { channelConnector });
+			this.setConnectors(new Connector[] { connector_v8 });
 		}
 		this.setHandler(handler);
+
+	}
+	private void init_Jetty_v9(int port, int sercurePort, String keyStorePath, String keyStorePassord) {
+		/*final ServerConnector connectorSSL_v9;
+		final ServerConnector connector_v9;
+
+		HttpConfiguration http_config = new HttpConfiguration();
+		//http_config.setSecurePort(8083);
+
+		final SslContextFactory sslContextFactory = new SslContextFactory(true);
+		sslContextFactory.setKeyStorePassword(keyStorePassord);
+
+		Connector maybeChannelConnectorSSL = null;
+		try {
+			//maybeChannelConnectorSSL = new SslSelectChannelConnector(sslContextFactory);
+		}catch (Exception ex) {
+			Log.e(CanardHTTPDService.TAG, "Could not build SslSocketConnector : "+ex.getMessage(), ex);
+		}
+		connectorSSL_v9 = null; //	maybeChannelConnectorSSL;
+		connector_v9 = new ServerConnector(this,	new HttpConnectionFactory(http_config));
+
+
+		if (connectorSSL_v9 !=null) {
+			connectorSSL_v9.setPort(sercurePort);
+			connectorSSL_v9.setIdleTimeout(MAX_IDLE_TIME);
+			connectorSSL_v9.setReuseAddress(true);
+		}
+
+		connector_v9.setPort(port);
+		connector_v9.setIdleTimeout(MAX_IDLE_TIME);
+		connector_v9.setAcceptQueueSize(2);
+
+		if (connectorSSL_v9 !=null) {
+			this.setConnectors(new Connector[] {connectorSSL_v9, connector_v9 });
+		} else {
+			this.setConnectors(new Connector[] { connector_v9 });
+		}
+		this.setHandler(handler);*/
 	}
 
 
@@ -276,6 +320,10 @@ public class CanardHTTPD extends Server {
 			}
 		}
 		return bestFittedHandler;
+	}
+
+	public int getPort(int connectorIndex) {
+		return getConnectors()[connectorIndex].getLocalPort();
 	}
 
 //	public static void main(String[] args) throws Exception {

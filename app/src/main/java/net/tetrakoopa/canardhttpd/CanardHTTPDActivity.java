@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -30,6 +31,9 @@ import java.io.File;
 
 public class CanardHTTPDActivity extends AppCompatActivity {
 
+	public final static String MANIFEST_PACKAGE = "net.tetrakoopa.canardhttpd";
+	public final static String MANIFEST_ACTIVITY = MANIFEST_PACKAGE+".CanardHTTPDActivity";
+
 	public final static String TAG = "CanardHTTPD";
 
 	private boolean neverCheckIntentParameters;
@@ -46,9 +50,13 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	private File fileFromPickupActivityReturn;
 
+	private Bundle savedInstanceState;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		this.savedInstanceState = savedInstanceState;
 
 		CommonHTMLComponent.setContext(this);
 
@@ -67,9 +75,19 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		createService();
 	}
 
+	private void copyDefaultCertificatToDir(String path) {
+		final File certificatsDirectory = getDir("security/certificate", MODE_PRIVATE );
+
+		//certificatsDirectory.a AssetManager.AssetInputStream qsd;
+
+	}
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		Log.d(TAG, "unbindService ");
+		unbindService(connection);
+		//stopService(intent);
 	}
 
 	@Override
@@ -87,15 +105,13 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	@Override
 	public void onStop() {
 		super.onStop();
-		unbindService(connection);
-		//stopService(intent);
 	}
 
 	private void createService() {
 		final Intent intent = new Intent(this, CanardHTTPDService.class);
-		Toast.makeText(this, "onStart | bindService ", Toast.LENGTH_SHORT).show();
+		Log.d(TAG, "bindService ");
 		bindService(intent, connection, Context.BIND_AUTO_CREATE);
-		Toast.makeText(this, "onStart | bindService done", Toast.LENGTH_SHORT).show();
+		Log.d(TAG, "bindService done");
 		startService(intent);
 	}
 
@@ -208,6 +224,12 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
+
+		if (id==R.id.action_menu_settings) {
+			startActivity(new Intent(SettingsActivity.MANIFEST_ACTIVITY), savedInstanceState);
+			return true;
+		}
+
 
 		//noinspection SimplifiableIfStatement
 		//if (id == R.id.action_settings) {

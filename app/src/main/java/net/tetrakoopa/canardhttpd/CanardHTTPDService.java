@@ -18,8 +18,12 @@ import net.tetrakoopa.canardhttpd.service.http.CanardHTTPD;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.mdu.android.util.ResourcesUtil;
 
+
+
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class CanardHTTPDService extends Service {
+
+	public final static String MANIFEST_ACTIVITY = CanardHTTPDActivity.MANIFEST_PACKAGE+".CanardHTTPDService";
 
 	public final static String TAG = "CanardHTTPDService";
 	
@@ -67,8 +71,6 @@ public class CanardHTTPDService extends Service {
 		
 		Log.d(TAG,"onStartCommand");
 
-
-
 		return START_STICKY;
 	}
 
@@ -90,7 +92,7 @@ public class CanardHTTPDService extends Service {
 		PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(this, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		Notification.Builder builder = new Notification.Builder(this);
-		builder.setContentTitle(title).setSmallIcon(R.mipmap.ic_launcher);
+		builder.setContentTitle(title).setSmallIcon(R.mipmap.canard_httpd_server);
 		builder.setContentText(text).setContentInfo(info);
 		builder.setOngoing(true);
 		builder.addAction(android.R.drawable.stat_sys_download_done, message(R.string.server_action_finish_then_stop), PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT));
@@ -130,6 +132,7 @@ public class CanardHTTPDService extends Service {
 			server = new CanardHTTPD(this, sharesManager, null, requestedPort, requestedSecurePort, "file:///android_asset/security/martin.home.crt.psk", "martin home");
 			Log.d(TAG, "HTTP Server : starting...");
 			server.start();
+			//server.join();
 			Log.i(TAG, "HTTP Server : Up");
 			if (listener != null)
 				listener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.UP, null);
@@ -162,6 +165,7 @@ public class CanardHTTPDService extends Service {
 
 		try {
 			server.stop();
+			server.join();
 			server = null;
 			Log.i(TAG, "Server Down");
 			if (listener != null)
@@ -183,7 +187,7 @@ public class CanardHTTPDService extends Service {
 	 *             port != requested port
 	 */
 	private int getServerPort(boolean checkConsistency) {
-		int listeningPort = server.getConnectors()[0].getLocalPort();
+		final int listeningPort = server.getPort(0);
 		if (listeningPort >= 0 && listeningPort != requestedPort)
 			throw new IllegalStateException("Listening Port != Requested Port ( " + listeningPort + " != " + requestedPort + " )");
 		return listeningPort;

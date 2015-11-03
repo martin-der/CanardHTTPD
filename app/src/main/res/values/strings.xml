@@ -38,6 +38,9 @@
     <string name="server_action_finish_then_stop">Finish pending download/upload then stop</string>
     <string name="server_action_kill">Kill server</string>
 
+    <string name="title_listen_interface">Listen</string>
+    <string name="title_share_IP">Share IP</string>
+    
 
     <string name="notification_server_running_on">Server started</string>
     <string name="notification_server_stopped">Server stopped</string>

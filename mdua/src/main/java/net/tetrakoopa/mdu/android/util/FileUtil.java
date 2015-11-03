@@ -17,9 +17,8 @@ public class FileUtil {
 		}
 	}
 	public static CharSequence readCharSequence(InputStream inputStream) throws IOException {
-		BufferedReader in = null;
+		final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
 		try {
-			in = new BufferedReader(new InputStreamReader(inputStream));
 			String line;
 			StringBuilder buffer = new StringBuilder();
 			while ((line = in.readLine()) != null)

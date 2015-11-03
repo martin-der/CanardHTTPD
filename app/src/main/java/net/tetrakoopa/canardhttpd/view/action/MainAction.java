@@ -360,12 +360,12 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	public static String findOutServerIP() {
 		String ip = null;
 		try {
-			ip = NetworkUtil.getIPAddressFromExternalProvider();
+			ip = NetworkUtil.getIPAddressFromExternalProviders(NetworkUtil.SOME_IP_PROVIDERS);
 			if (ip != null)
 				return ip;
 		} catch (Exception ex) {
 			// Toast.makeText(this.canardHTTPDActivity, "Failed to retreive server IP : " + ex.getClass().getName() + " : " + ex.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-			Log.w(CanardHTTPDActivity.TAG, "Failed to retreive IP using external provider");
+			Log.w(CanardHTTPDActivity.TAG, "Failed to retreive IP using external provider : "+ex.getMessage());
 		}
 		try {
 			ip = NetworkUtil.getIPAddress(true);
