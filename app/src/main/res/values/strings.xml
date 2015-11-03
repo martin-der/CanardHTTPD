@@ -1,0 +1,67 @@
+<resources>
+    <string name="app_name">CanardHTTPD</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="srv_name">Canard HTTPD Service</string>
+    <string name="app_name_monitoring">Activity</string>
+
+
+    <string name="misc_eula_title">User Licence Agrement</string>
+    <string name="misc_eula_accept">Accept</string>
+    <string name="misc_eula_refuse">Refuse</string>
+
+    <string name="BUTTON_server_start">Start</string>
+    <string name="BUTTON_server_stop">Stop</string>
+
+    <string name="show_about">Show \'about\' information</string>
+    <string name="share_server_info">Share server information</string>
+    <string name="add_share">Add something to share list</string>
+
+
+    <string name="domain_log">Log</string>
+    <string name="domain_activity">Activity</string>
+
+    <string name="domain_shares">Shared file(s)</string>
+
+    <string name="domain_server_status_starting">Starting…</string>
+    <string name="domain_server_status_running">Started</string>
+    <string name="domain_server_status_halting">Shuting down…</string>
+    <string name="domain_server_status_stopped">Down</string>
+    <string name="domain_server_status_unknown">Unknown</string>
+
+    <string name="generic_unknown">Unknown</string>
+
+    <string name="open_settings_server">Server</string>
+
+    <string name="server_status_no_download">Nothing being downloaded</string>
+    <string name="server_action_finish_then_stop">Finish pending download/upload then stop</string>
+    <string name="server_action_kill">Kill server</string>
+
+
+    <string name="notification_server_running_on">Server started</string>
+    <string name="notification_server_stopped">Server stopped</string>
+
+    <string name="title_pick_file_to_share">Choose what to share</string>
+
+    <string name="title_share_server_info">Share Web Server Access</string>
+    <string name="title_share_sharedtext_url">Share text URL</string>
+    <string name="title_share_sharedfile_url">Share file URL</string>
+    <string name="title_share_sharedfolder_url">Share folder URL</string>
+    <string name="title_share_sharedfolder_url_zip">Share zipped folder URL</string>
+
+    <string name="error_failed_server_start">Failed to start server</string>
+    <string name="error_failed_server_stop">Failed to stop server</string>
+    <string name="error_failed_server_status">Failed to get server\'s status</string>
+    <string name="error_failed_server_unknown_operation">Failed to \'manipulate\' server</string>
+    <string name="error_server_disconnection">Lost connection to server</string>
+    <string name="error_explain__could_not_bind">Could no bind port for server. Maybe some other process is already listening on the same port.</string>
+    <string name="error_explain__error_unknown_server_error">An unexpected error occurred.</string>
+
+    <string name="error_failed_to_share">Trying to share…</string>
+    <string name="error_activity_param_null_mime_type">Unable to guess type of element to share.</string>
+    <string name="error_activity_param_unknown_mime_type">Don\'t know how to share this kind of file</string>
+    <string name="error_file_already_share">File is already shared.</string>
+    <string name="error_file_not_shared">File is not shared.</string>
+
+</resources>

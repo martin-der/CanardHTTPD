@@ -1,0 +1,49 @@
+/* Subtle - Canard HTTPD Template */
+
+
+body {
+	background-color : #DDD;
+	background-image : none;
+
+	color : black;
+}
+
+div.main-container {
+	background-color: silver;
+	border-radius: 4px;
+	margin-bottom: 10px;
+}
+
+div.header td.title  {
+	vertical-align : middle;
+}
+div.header h1 {
+	color: blue;
+	font-size : 2.0em;
+}
+
+div.breadcrumb
+{ 
+	text-align: center;
+} 
+
+table.shared-things { 
+	font-size: 1.8em;
+	border-spacing: 0px 5px;
+	border-collapse: separate;
+}
+
+table.shared-things tr.even-row:hover {
+	background-color : white;
+}
+table.shared-things tr.even-row {
+	background-color : rgb(219, 214, 214);
+}
+
+table.shared-things tr.odd-row:hover {
+	background-color : #eee;
+}
+table.shared-things tr.odd-row {
+	background-color : rgb(172, 167, 167);
+}
+

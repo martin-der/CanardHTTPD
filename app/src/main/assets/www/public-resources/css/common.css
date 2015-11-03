@@ -1,0 +1,34 @@
+body {
+	background: none;
+	background-image : none;
+}
+
+div.header td.title  {
+	vertical-align : bottom;
+}
+
+div.breadcrumb
+{ 
+	font-size : 3em;
+} 
+div.main-container 
+{ 
+	padding: 10px 10px 10px 10px; 
+} 
+div.sub-container {
+	padding: 5px 15px 5px 15px;  
+	margin-bottom: 5px;
+}
+
+table.shared-things { 
+	width : 100%;
+	font-size: 1.8em;
+	border-spacing: 0px 5px;
+	border-collapse: separate;
+}
+table.shared-things a { 
+	text-decoration: none;
+}
+table.shared-things td { 
+    padding: 0px 10px 0px 10px;
+}

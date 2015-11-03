@@ -1,0 +1,77 @@
+/* Terminal - Canard HTTPD Template */
+
+
+@font-face {
+  font-family: 'AdvancedLedBoard7';
+  font-style: normal;
+  font-weight: 400;
+  src: local('AdvancedLedBoard7'), local('AdvancedLedBoard7-Regular'), url(./font/advanced_led_board-7.ttf)
+}
+@font-face {
+  font-family: 'Twobit';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Twobit'), local('Twobit-Regular'), url(./font/Twobit.ttf)
+}
+
+body {
+	background-color : black;
+	background-image : none;
+
+	color : green;
+}
+
+div.header h1 {
+	color: green;
+	font-size : 2.8em;
+	font-family : AdvancedLedBoard7	;
+}
+
+div.main-container {
+	background-color: black;
+	border-radius: 0px;
+	border-width: 2px;
+	border-color: green;
+	border-style: solid;
+	padding: 8px;
+	margin-bottom: 10px;
+}
+div.sub-container {
+	border-radius: 0px;
+	border-width: 1px;
+	border-color: green;
+	border-style: solid;
+	padding: 4px 14px 4px 14px;
+}
+
+div.breadcrumb
+{ 
+	text-align: center;
+} 
+
+table.shared-things { 
+	width : 100%;
+	font-size: 1.8em;
+	border-spacing: 3px 5px;
+	border-collapse: separate;
+	font-family : Twobit;
+}
+
+table.shared-things tr.even-row:hover {
+	color : green;
+	background-color : rgba(0,0,0,0);
+}
+table.shared-things tr.even-row {
+	color : rgba(0,0,0,0);
+	background-color : green;
+}
+
+table.shared-things tr.odd-row:hover {
+	color : rgba(0,0,0,0);
+	background-color : green;
+}
+table.shared-things tr.odd-row {
+	color : green;
+	background-color : rgba(0,0,0,0);
+}
+
