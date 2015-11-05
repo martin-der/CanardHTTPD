@@ -1,5 +1,7 @@
 package net.tetrakoopa.canardhttpd.service.http.writer.sharedthing;
 
+import android.content.Context;
+
 import net.tetrakoopa.canardhttpd.domain.common.SharedCollection;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
@@ -9,7 +11,11 @@ import java.io.PrintStream;
 import java.io.Writer;
 import java.util.Map;
 
-public class CollectionWriter<C extends SharedCollection> extends AbstractSharedThingWriter<C> {
+public abstract class CollectionWriter<C extends SharedCollection> extends AbstractSharedThingWriter<C> {
+
+	protected CollectionWriter(Context context) {
+		super(context);
+	}
 
 	@Override
 	protected final void writeThing(Writer writer, String uri, C collection) throws IOException {

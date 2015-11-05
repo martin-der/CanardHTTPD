@@ -15,6 +15,21 @@ import java.util.Map;
 
 public abstract class PageWriter extends CommonHTMLComponent {
 
+	public enum Method {
+		GET, POST;
+
+	   public static Method fromName(String name) {
+			if (name==null)
+				return null;
+			for (Method possibleMatch : Method.values()) {
+			if (possibleMatch.name().equals(name.toUpperCase()))
+				return possibleMatch;
+			}
+			throw new IllegalArgumentException();
+	   }
+
+	}
+
 	private final static String TITLE = "Canard HTTPD";
 
 //	private final FastEnclosedTextConverter<Map<String, Object>> templatedHtmlWriter = new FastEnclosedTextConverter<Map<String, Object>>();

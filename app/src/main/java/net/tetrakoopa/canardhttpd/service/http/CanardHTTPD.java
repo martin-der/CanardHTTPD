@@ -13,12 +13,13 @@ import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedGroup;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
 import net.tetrakoopa.canardhttpd.service.CanardLogger;
-import net.tetrakoopa.canardhttpd.service.http.writer.BaseServlet;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.DirectoryWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.GroupWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.TextWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.GenericFileWriter;
+import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.ImageWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.SpecificFileWriter;
+import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.VCardWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.template.PageWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.template.TemplateArg;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
@@ -35,7 +36,6 @@ import org.eclipse.jetty.server.Server;
 //import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
@@ -43,7 +43,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Writer;
-import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,17 +58,20 @@ public class CanardHTTPD extends Server {
 
 	public static final String MIME_HTML = "text/html";
 
-	private final Map<String, List<SpecificFileWriter>> typeMimewriters = new HashMap<String, List<SpecificFileWriter>>();
-	private final TextWriter textWriter = new TextWriter();
+	private final List<SpecificFileWriter> typeMimeWriters = new ArrayList<>();
 
 	private final Context context;
 	private final SharesManager sharesManager;
+
+	private final TextWriter textWriter;
+	private final GroupWriter groupWriter;
+	private final DirectoryWriter directoryWriter;
+	private final GenericFileWriter genericFileWriter;
 
 	private String encoding = "UTF-8";
 	
 	private static final int MAX_IDLE_TIME = 30000;
 
-	private GroupWriter groupWriter;
 
 	private final Map<HttpRequest, SharedThing> downloads = new HashMap<HttpRequest, SharedThing>();
 
@@ -76,7 +79,16 @@ public class CanardHTTPD extends Server {
 	public CanardHTTPD(Context context, SharesManager sharesManager, String hostname, int port, int sercurePort, String keyStorePath, String keyStorePassord) {
 		this.sharesManager = sharesManager;
 		this.context = context;
-		this.groupWriter = new GroupWriter();
+
+		this.directoryWriter = new DirectoryWriter(context);
+		this.groupWriter = new GroupWriter(context);
+		this.textWriter = new TextWriter(context);
+		this.genericFileWriter = new GenericFileWriter(context);
+
+
+		this.typeMimeWriters.add(new VCardWriter(context));
+		this.typeMimeWriters.add(new ImageWriter(context));
+
 
 		init_Jetty_v8(port, sercurePort, keyStorePath, keyStorePassord);
 	}
@@ -129,10 +141,10 @@ public class CanardHTTPD extends Server {
 				serve(request, response);
 				((Request) request).setHandled(true);
 				final long end = System.nanoTime();
-				CanardLogger.i("Request for '" + request.getRequestURI() + "' served in " + (end - begin) + " ms");
+				CanardLogger.d("Request for '" + request.getRequestURI() + "' served in " + (end - begin) + " ms");
 			} catch (Exception ex) {
 				final long end = System.nanoTime();
-				CanardLogger.e("Failed to serve '" + request.getRequestURI() + "' after " + (end - begin) + " ms");
+				CanardLogger.e("Failed to serve '" + request.getRequestURI() + "' ( after " + (end - begin) + " ms )");
 			}
 		}
 	};
@@ -221,8 +233,6 @@ public class CanardHTTPD extends Server {
 //			uri = uri.substring(0, ii);
 //		}
 
-		final BaseServlet.Method method = BaseServlet.Method.fromName(request.getMethod());
-
 		final Map<String, String> headers = null; //request.getParameterMap();
 		final Map<String, String[]> params = request.getParameterMap();
 
@@ -235,7 +245,7 @@ public class CanardHTTPD extends Server {
 			@Override
 			protected void writeContent(Writer destination, TemplateArg arg) {
 				try {
-					writeThingContent(destination, uri);
+					CanardHTTPD.this.writeContent(destination, uri);
 				} catch (IOException ioex) {
 					Log.e(CanardHTTPDService.TAG, "Failed to write thing content (uri='" + uri + "') : " + ioex.getMessage());
 				}
@@ -252,7 +262,7 @@ public class CanardHTTPD extends Server {
 		return false;
 	}
 
-	private boolean writeThingContent(Writer stream, String uri) throws IOException {
+	private boolean writeContent(Writer stream, String uri) throws IOException {
 
 		final BreadCrumb breadCrumb = new BreadCrumb();
 		final SharedThing thing;
@@ -266,26 +276,23 @@ public class CanardHTTPD extends Server {
 		if (thing instanceof SharedCollection) {
 			SharedCollection collection = (SharedCollection)thing;
 			if (collection instanceof SharedGroup) {
-				new GroupWriter().write(stream, uri, (SharedGroup) collection);
+				groupWriter.write(stream, uri, (SharedGroup) collection);
 			} else {
-				new DirectoryWriter().write(stream, uri, (SharedDirectory) collection);
+				directoryWriter.write(stream, uri, (SharedDirectory) collection);
 			}
 		} else if (thing instanceof SharedText) {
 			textWriter.write(stream, uri, (SharedText) thing);
 		} else if (thing instanceof SharedFile) {
 			final SharedFile sharedFile = (SharedFile)thing;
 			SpecificFileWriter writer = null;
-			if (sharedFile.getMimeType() == null) {
-				final List<SpecificFileWriter> writers = typeMimewriters.get(sharedFile.getMimeType());
-				if (writers != null) {
-					writer = getBestHandler(sharedFile, writers);
-				}
+			if (sharedFile.getMimeType() != null) {
+				writer = SpecificFileWriter.getBestHandler(sharedFile.getMimeType(), typeMimeWriters);
 			}
 			if (writer != null) {
 				writer.write(stream, uri, sharedFile);
 			} else {
 				Log.w(CanardHTTPDActivity.TAG, "No handler found for file with mime '" + sharedFile.getMimeType() + "'");
-				new GenericFileWriter().write(stream, uri, sharedFile);
+				genericFileWriter.write(stream, uri, sharedFile);
 			}
 		}
 		return true;
@@ -318,52 +325,9 @@ public class CanardHTTPD extends Server {
 
 
 
-	/**
-	 * 
-	 * @param writers
-	 * @return best hanlder, <code>null</code> is none found
-	 */
-	private SpecificFileWriter getBestHandler(SharedFile sharedFile, List<SpecificFileWriter> writers) {
-		SpecificFileWriter bestFittedHandler = null;
-		SpecificFileWriter.HandleAffinity bestFittedHandlerAffinity = null;
-
-		for (SpecificFileWriter writer : writers) {
-			SpecificFileWriter.HandleAffinity affinity = writer.affinityWith(sharedFile.getMimeType());
-			if (affinity == null || affinity != SpecificFileWriter.HandleAffinity.DONT_KNOW)
-				continue;
-
-			if (bestFittedHandler == null) {
-				bestFittedHandler = writer;
-				bestFittedHandlerAffinity = affinity;
-			} else {
-				if (affinity.ordinal() > bestFittedHandlerAffinity.ordinal()) {
-					bestFittedHandler = writer;
-					bestFittedHandlerAffinity = affinity;
-				}
-			}
-		}
-		return bestFittedHandler;
-	}
-
 	public int getPort(int connectorIndex) {
 		return getConnectors()[connectorIndex].getLocalPort();
 	}
 
-//	public static void main(String[] args) throws Exception {
-//		HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
-//		server.createContext("/test", new MyHandler());
-//		server.setExecutor(null); // creates a default executor
-//		server.start();
-//	}
-//
-//	static class MyHandler implements HttpHandler {
-//		public void handle(HttpExchange t) throws IOException {
-//			String response = "This is the response";
-//			t.sendResponseHeaders(200, response.length());
-//			OutputStream os = t.getResponseBody();
-//			os.write(response.getBytes());
-//			os.close();
-//		}
-//	}
 
 }

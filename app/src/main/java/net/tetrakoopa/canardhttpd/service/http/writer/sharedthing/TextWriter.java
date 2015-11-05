@@ -1,5 +1,7 @@
 package net.tetrakoopa.canardhttpd.service.http.writer.sharedthing;
 
+import android.content.Context;
+
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
 
 import java.io.IOException;
@@ -9,6 +11,10 @@ import java.util.Map;
 
 public class TextWriter extends AbstractSharedThingWriter<SharedText> implements SharedThingWriter<SharedText> {
 
+
+	public TextWriter(Context context) {
+		super(context);
+	}
 
 	@Override
 	public void writeThing(Writer writer, String uri, SharedText sharedText) throws IOException {

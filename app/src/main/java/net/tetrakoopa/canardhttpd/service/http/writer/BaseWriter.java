@@ -9,34 +9,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 
-import javax.servlet.http.HttpServlet;
 
-@SuppressWarnings("serial")
-public abstract class BaseServlet extends HttpServlet {
-
-	public static enum Method {
-		GET, POST;
-		
-		
-		public static Method fromName(String name) {
-			if (name==null) 
-				return null;
-			for (Method possibleMatch : Method.values()) {
-				if (possibleMatch.name().equals(name.toUpperCase()))
-					return possibleMatch;
-			}
-			throw new IllegalArgumentException();
-		}
-		
-	}
-
-	private static Context context;
-
-	protected final static String TAG = CanardHTTPDActivity.TAG;
+public abstract class BaseWriter {
 
 	public final static String DEFAULT_ENCODING = "UTF-8";
 	public final static String DEFAULT_PAGE_ENCODING = DEFAULT_ENCODING;
 	private final static String DEFAULT_ASSET_ENCODING = DEFAULT_ENCODING;
+
+	protected final Context context;
+
+	protected BaseWriter(Context context) {
+		this.context = context;
+	}
 
 	public final static String escapedXmlContent(String string) {
 		return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
@@ -68,14 +52,6 @@ public abstract class BaseServlet extends HttpServlet {
 
 	protected InputStream getAsset(String assertName) throws IOException {
 		return context.getAssets().open(assertName);
-	}
-
-	public static void setContext(Context context) {
-		BaseServlet.context = context;
-	}
-
-	protected static Context getContext() {
-		return context;
 	}
 
 }

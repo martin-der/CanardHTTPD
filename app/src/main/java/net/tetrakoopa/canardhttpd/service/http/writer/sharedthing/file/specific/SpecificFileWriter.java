@@ -1,12 +1,21 @@
 package net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific;
 
+import android.content.Context;
+
+import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.FileWriter;
+
+import java.util.List;
 
 
 public abstract class SpecificFileWriter extends FileWriter {
 
-	public static enum HandleAffinity {
-		DONT_KNOW, NOT_FOUND_OF, HANDLE_WELL, MASTERIZE, IS_REFERENCE_IMPLEMENTATION;
+	protected SpecificFileWriter(Context context) {
+		super(context);
+	}
+
+	public enum HandleAffinity {
+		DOESNT_KNOW, IS_NOT_FOUND_OF, HANDLES_WELL, MASTERIZES, IS_REFERENCE_IMPLEMENTATION;
 	}
 	
 	final protected static boolean isMimeTypeOneOf(String type, String... types) {
@@ -18,5 +27,29 @@ public abstract class SpecificFileWriter extends FileWriter {
 	}
 
 	public abstract HandleAffinity affinityWith(String mimeType);
+
+	/**
+	 *
+	 * @param writers
+	 * @return best hanlder, <code>null</code> is none found
+	 */
+	public static SpecificFileWriter getBestHandler(String mimeType, List<SpecificFileWriter> writers) {
+		SpecificFileWriter bestFittedHandler = null;
+		SpecificFileWriter.HandleAffinity bestFittedHandlerAffinity = null;
+
+		for (SpecificFileWriter writer : writers) {
+			final SpecificFileWriter.HandleAffinity affinity = writer.affinityWith(mimeType);
+
+			if (affinity == null)
+				continue;
+
+			if ((bestFittedHandler == null) || (affinity.ordinal() > bestFittedHandlerAffinity.ordinal())) {
+				bestFittedHandler = writer;
+				bestFittedHandlerAffinity = affinity;
+			}
+		}
+		return bestFittedHandler;
+	}
+
 
 }

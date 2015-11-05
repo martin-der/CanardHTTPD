@@ -1,5 +1,7 @@
 package net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file;
 
+import android.content.Context;
+
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 
 import java.io.IOException;
@@ -10,7 +12,9 @@ import java.util.Map;
 
 public class GenericFileWriter extends FileWriter {
 
-	private static final long serialVersionUID = 2738856182718165033L;
+	public GenericFileWriter(Context context) {
+		super(context);
+	}
 
 	@Override
 	protected void writeThing(Writer writer, String uri, SharedFile sharedFile) throws IOException {

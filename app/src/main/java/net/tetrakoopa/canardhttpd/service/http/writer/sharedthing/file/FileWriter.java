@@ -1,8 +1,11 @@
 package net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file;
 
+import android.content.Context;
+
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.AbstractSharedThingWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.SharedThingWriter;
+import net.tetrakoopa.canardhttpd.service.http.writer.template.PageWriter;
 import net.tetrakoopa.mdu.util.FileUtil;
 
 import java.io.FileInputStream;
@@ -13,7 +16,11 @@ import java.util.Map;
 
 public abstract class FileWriter extends AbstractSharedThingWriter<SharedFile> implements SharedThingWriter<SharedFile> {
 
-	public final void writeRaw(OutputStream stream, SharedFile sharedFile, Method method, Map<String, String[]> headers, Map<String, String[]> parms) throws IOException {
+	protected FileWriter(Context context) {
+		super(context);
+	}
+
+	public final void writeRaw(OutputStream stream, SharedFile sharedFile, PageWriter.Method method, Map<String, String[]> headers, Map<String, String[]> parms) throws IOException {
 		final InputStream inputStream = new FileInputStream(sharedFile.getFile());
 		FileUtil.copy(inputStream, stream);
 	}
