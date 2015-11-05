@@ -2,15 +2,17 @@ package net.tetrakoopa.canardhttpd.service.http.writer.sharedthing;
 
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.util.Map;
 
 public class TextWriter extends AbstractSharedThingWriter<SharedText> implements SharedThingWriter<SharedText> {
 
 
 	@Override
-	public void writeThing(PrintStream stream, String uri, SharedText sharedText) {
-		stream.append("<pre style=\"word-wrap: break-word; white-space: pre-wrap;\">" + escapedXmlContent(sharedText.getText()) + "</pre>");
+	public void writeThing(Writer writer, String uri, SharedText sharedText) throws IOException {
+		writer.append("<pre style=\"word-wrap: break-word; white-space: pre-wrap;\">" + escapedXmlContent(sharedText.getText()) + "</pre>");
 	}
 
 

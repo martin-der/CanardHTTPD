@@ -35,8 +35,8 @@
     <string name="open_settings_server">Server</string>
 
     <string name="server_status_no_download">Nothing being downloaded</string>
-    <string name="server_action_finish_then_stop">Finish pending download/upload then stop</string>
-    <string name="server_action_kill">Kill server</string>
+    <string name="server_action_finish_then_stop">Stop</string>
+    <string name="server_action_kill">Kill</string>
 
     <string name="title_listen_interface">Listen</string>
     <string name="title_share_IP">Share IP</string>

@@ -1,6 +1,7 @@
 package net.tetrakoopa.mdu.android.view.component;
 
 import android.app.Activity;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -8,19 +9,21 @@ public abstract class AbtractViewLayout {
 	
 	protected final View viewLayout;
 	protected final Activity activity;
-	
-	public AbtractViewLayout(Activity activity, int viewLayoutId) {
+	protected final Bundle savedInstanceState;
 
-		this(activity,activity.findViewById(viewLayoutId));
+
+	public AbtractViewLayout(Activity activity, Bundle savedInstanceState, int viewLayoutId) {
+
+		this(activity,savedInstanceState,activity.findViewById(viewLayoutId));
 	}
-	public AbtractViewLayout(Activity activity, int layoutId, int layoutRootElementId) {
+	public AbtractViewLayout(Activity activity, Bundle savedInstanceState, int layoutId, int layoutRootElementId) {
 		
-		this(activity,activity.getLayoutInflater().inflate(layoutId, (ViewGroup) activity.findViewById(layoutRootElementId)));
+		this(activity,savedInstanceState,activity.getLayoutInflater().inflate(layoutId, (ViewGroup) activity.findViewById(layoutRootElementId)));
 	}
 	
-	public AbtractViewLayout(Activity activity, View viewLayout) {
+	public AbtractViewLayout(Activity activity, Bundle savedInstanceState, View viewLayout) {
 		this.activity = activity;
-		
+		this.savedInstanceState = savedInstanceState;
 		this.viewLayout = viewLayout;
 	}
 

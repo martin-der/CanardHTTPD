@@ -6,32 +6,32 @@ import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.util.Map;
 
 public class CollectionWriter<C extends SharedCollection> extends AbstractSharedThingWriter<C> {
 
 	@Override
-	protected final void writeThing(PrintStream stream, String uri, C collection)
-			throws IOException {
+	protected final void writeThing(Writer writer, String uri, C collection) throws IOException {
 
-		stream.append("<table class=\"shared-things\">\n");
+		writer.append("<table class=\"shared-things\">\n");
 		int index = 0;
-		stream.append("\t<tr>");
-		stream.append("<th></th>");
-		stream.append("<th>Name</th>");
-		stream.append("<th>Comment</th>");
-		stream.append("<th></th>");
-		stream.append("</tr>\n");
+		writer.append("\t<tr>");
+		writer.append("<th></th>");
+		writer.append("<th>Name</th>");
+		writer.append("<th>Comment</th>");
+		writer.append("<th></th>");
+		writer.append("</tr>\n");
 		for (SharedThing thing : collection.getThings()) {
-			stream.append("\t<tr class=\"" + (index % 2 == 0 ? "even" : "odd") + "-row\">");
-			stream.append("<td></td>");
-			stream.append("<td><a href=\"/" + CommonHTMLComponent.escapedXmlAttribut(thing.getName()) + "?v=h" + "\">" + CommonHTMLComponent.escapedXmlContent(thing.getName()) + "</a></td>");
-			stream.append("<td>"+(thing.getComment()!=null?CommonHTMLComponent.escapedXmlContent(thing.getComment()):"")+"</td>");
-			stream.append("<td><a href=\"/" + CommonHTMLComponent.escapedXmlAttribut(thing.getName()) + "\">" + "&#160;[V]" + "</a></td>");
-			stream.append("</tr>\n");
+			writer.append("\t<tr class=\"" + (index % 2 == 0 ? "even" : "odd") + "-row\">");
+			writer.append("<td></td>");
+			writer.append("<td><a href=\"/" + CommonHTMLComponent.escapedXmlAttribut(thing.getName()) + "?v=h" + "\">" + CommonHTMLComponent.escapedXmlContent(thing.getName()) + "</a></td>");
+			writer.append("<td>" + (thing.getComment() != null ? CommonHTMLComponent.escapedXmlContent(thing.getComment()) : "") + "</td>");
+			writer.append("<td><a href=\"/" + CommonHTMLComponent.escapedXmlAttribut(thing.getName()) + "\">" + "&#160;[V]" + "</a></td>");
+			writer.append("</tr>\n");
 			index++;
 		}
-		stream.append("</table>\n");
+		writer.append("</table>\n");
 		
 	}
 

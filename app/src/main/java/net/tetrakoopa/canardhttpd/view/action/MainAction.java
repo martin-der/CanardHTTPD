@@ -1,7 +1,9 @@
 package net.tetrakoopa.canardhttpd.view.action;
 
 import android.content.ComponentName;
+import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -23,7 +25,9 @@ import net.tetrakoopa.canardhttpd.CanardHTTPDService;
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatus;
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener;
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener.ActionTrigger;
+import net.tetrakoopa.canardhttpd.LogActivity;
 import net.tetrakoopa.canardhttpd.R;
+import net.tetrakoopa.canardhttpd.SettingsActivity;
 import net.tetrakoopa.canardhttpd.domain.common.CommonSharedThing;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedDirectory;
@@ -65,8 +69,8 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	private final ServerChangeListener serverChangeListener = new ServerChangeListener();
 
 
-	public MainAction(CanardHTTPDActivity activity, View viewLayout) {
-		super(activity, viewLayout);
+	public MainAction(CanardHTTPDActivity activity, Bundle savedInstanceState, View viewLayout) {
+		super(activity, savedInstanceState, viewLayout);
 	}
 
 	@Override
@@ -111,7 +115,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		sharedFilesList = (ListView) parentView.findViewById(R.id.shared_files);
 		sharedFilesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
-			public void onItemClick(AdapterView<?> arg0, View view, int index, long arg3) {
+			public void onItemClick(AdapterView<?> adapterView, View view, int index, long arg3) {
 				// SharedThing sharedThing = canardHTTPDActivity.getFilesManager().getSharedThings().get((int) sharedFilesList.getSelectedItemId());
 				Toast.makeText(MainAction.this.activity(), view.getClass().getName(), Toast.LENGTH_LONG).show();
 
@@ -130,9 +134,9 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		});
 		logButton = (Button) parentView.findViewById(R.id.action_show_log);
 		logButton.setOnClickListener(new OnClickListener() {
-
 			@Override
 			public void onClick(View button) {
+				activity.startActivity(new Intent(MainAction.this.activity, LogActivity.class), savedInstanceState);
 			}
 		});
 

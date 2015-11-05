@@ -1,6 +1,7 @@
 package net.tetrakoopa.canardhttpd.view.action;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDActivity;
@@ -16,8 +17,8 @@ public abstract class AbstractCommonAction extends AbtractViewLayout {
 
 	protected final Formater formater;
 
-	public AbstractCommonAction(CanardHTTPDActivity activity, View viewLayout) {
-		super(activity, viewLayout);
+	public AbstractCommonAction(CanardHTTPDActivity activity, Bundle savedInstanceState, View viewLayout) {
+		super(activity, savedInstanceState, viewLayout);
 		canardHTTPDActivity = activity;
 		formater = new Formater(activity);
 	}

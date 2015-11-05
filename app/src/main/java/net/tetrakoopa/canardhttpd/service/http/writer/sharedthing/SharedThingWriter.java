@@ -5,10 +5,11 @@ import net.tetrakoopa.canardhttpd.service.http.writer.BaseServlet.Method;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.util.Map;
 
 public interface SharedThingWriter<THING extends SharedThing> {
 
-	void write(PrintStream stream, String uri, THING thing) throws IOException;
+	void write(Writer writer, String uri, THING thing) throws IOException;
 
 }

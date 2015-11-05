@@ -1,5 +1,6 @@
 package net.tetrakoopa.canardhttpd;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
@@ -15,12 +16,15 @@ public class MonitoringActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		setContentView(R.layout.activity_canard_httpd);
+		final ActionBar actionBar = getActionBar();
+		if (actionBar!=null) {
+			actionBar.setDisplayHomeAsUpEnabled(true);
+		}
 
 		View mainView = findViewById(R.id.main);
 
-		action = new MonitoringAction(null, mainView);
+		action = new MonitoringAction(null, savedInstanceState, mainView);
 		action.doPrepareLayoutAndStuff();
 
 	}

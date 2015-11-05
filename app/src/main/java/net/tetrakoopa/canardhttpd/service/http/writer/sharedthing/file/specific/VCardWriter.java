@@ -4,6 +4,7 @@ import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.util.Map;
 
 public class VCardWriter extends SpecificFileWriter {
@@ -17,8 +18,8 @@ public class VCardWriter extends SpecificFileWriter {
 	}
 
 	@Override
-	public void writeThing(PrintStream stream, String uri, SharedFile thing) throws IOException {
-		stream.write("This is a VCARD !".getBytes());
+	public void writeThing(Writer writer, String uri, SharedFile thing) throws IOException {
+		writer.append("This is a VCARD !");
 	}
 
 }

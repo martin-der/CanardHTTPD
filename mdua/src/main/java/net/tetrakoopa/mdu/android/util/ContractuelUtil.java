@@ -3,7 +3,9 @@ package net.tetrakoopa.mdu.android.util;
 import java.io.IOException;
 import java.util.Locale;
 
-import net.tetrakoopa.mdu.Mdu;
+import net.tetrakoopa.mdu.android.Mdu;
+import net.tetrakoopa.mdu.util.FileUtil;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;

@@ -4,6 +4,7 @@ import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.util.Map;
 
 public class ImageWriter extends SpecificFileWriter {
@@ -17,8 +18,8 @@ public class ImageWriter extends SpecificFileWriter {
 	}
 
 	@Override
-	public void writeThing(PrintStream stream, String uri, SharedFile sharedFile) throws IOException {
-		stream.append("<img src=\"" + uri + "\" style=\"width:200px;\"/>");
+	public void writeThing(Writer writer, String uri, SharedFile sharedFile) throws IOException {
+		writer.append("<img src=\"" + uri + "\" style=\"width:200px;\"/>");
 	}
 
 }

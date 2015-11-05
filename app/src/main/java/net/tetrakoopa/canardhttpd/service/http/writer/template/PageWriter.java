@@ -1,8 +1,8 @@
 package net.tetrakoopa.canardhttpd.service.http.writer.template;
 
 import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
-import net.tetrakoopa.mdu.text.formater.BufferedMustacheShaver;
-import net.tetrakoopa.mdu.text.formater.MustacheShaver;
+import net.tetrakoopa.mdu.text.formater.BufferedEnclosedTextConverter;
+import net.tetrakoopa.mdu.text.formater.EnclosedTextConverter;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -17,10 +17,10 @@ public abstract class PageWriter extends CommonHTMLComponent {
 
 	private final static String TITLE = "Canard HTTPD";
 
-//	private final FastMustacheShaver<Map<String, Object>> templatedHtmlWriter = new FastMustacheShaver<Map<String, Object>>();
-//	private final FastMustacheShaver.BarberTools<Map<String, Object>> tools = new FastMustacheShaver.BarberTools<Map<String, Object>>() {
+//	private final FastEnclosedTextConverter<Map<String, Object>> templatedHtmlWriter = new FastEnclosedTextConverter<Map<String, Object>>();
+//	private final FastEnclosedTextConverter.ConverterTools<Map<String, Object>> tools = new FastEnclosedTextConverter.ConverterTools<Map<String, Object>>() {
 //		@Override
-//		public void shave(Map<String, Object> context, String key, FileWriter oututStream) {
+//		public void convert(Map<String, Object> context, String key, FileWriter oututStream) {
 //			// TODO Auto-generated method stub
 //
 //		}
@@ -66,11 +66,28 @@ public abstract class PageWriter extends CommonHTMLComponent {
 		});
 	}
 
+	private static final EnclosedTextConverter.ConverterTools<Map<String, ReplacerTool>> barberTools = new EnclosedTextConverter.ConverterTools<Map<String, ReplacerTool>>() {
+
+		@Override
+		public void convert(Map<String, ReplacerTool> stringReplacerToolMap, String key, Writer destination, int extraMustaches) throws IOException {
+			final ReplacerTool replacerTool = stringReplacerToolMap.get(key);
+			if (replacerTool != null) {
+				replacerTool.write(destination, null);
+			}
+		}
+
+		@Override
+		public Object comment(Map<String, ReplacerTool> stringReplacerToolMap, String subject) {
+			return null;
+		}
+	};
+
+
 	abstract protected void writeHeader(Writer destination, TemplateArg arg);
 	abstract protected void writeContent(Writer destination, TemplateArg arg);
 	abstract protected void writeFooter(Writer destination, TemplateArg arg);
 
-	final MustacheShaver<Map<String,ReplacerTool>> replacer = new BufferedMustacheShaver<>();
+	final EnclosedTextConverter<Map<String,ReplacerTool>> replacer = new BufferedEnclosedTextConverter<>();
 
 	private final static TemplateArg NO_PARAM = new TemplateArg();
 
@@ -80,22 +97,6 @@ public abstract class PageWriter extends CommonHTMLComponent {
 			arg = NO_PARAM;
 
 		final Reader reader = new InputStreamReader(getAsset("www/template/layout/classic_HeaderFooter_Vertical.html"), "UTF-8");
-
-		final BufferedMustacheShaver.BarberTools<Map<String, ReplacerTool>> barberTools = new BufferedMustacheShaver.BarberTools<Map<String, ReplacerTool>>() {
-
-			@Override
-			public void shave(Map<String, ReplacerTool> stringReplacerToolMap, String key, Writer destination, int extraMustaches) throws IOException {
-				final ReplacerTool replacerTool = stringReplacerToolMap.get(key);
-				if (replacerTool != null) {
-					replacerTool.write(destination, null);
-				}
-			}
-
-			@Override
-			public Object comment(Map<String, ReplacerTool> stringReplacerToolMap, String subject) {
-				return null;
-			}
-		};
 
 		replacer.process(reader, new PrintWriter(stream), writerContext, barberTools);
 

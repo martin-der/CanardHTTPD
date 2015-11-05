@@ -2,7 +2,7 @@
 
     <item
         android:id="@+id/action_menu_settings"
-        android:orderInCategory="100"
+        android:orderInCategory="50"
         android:title="@string/action_settings">
         	<menu android:id="@+id/action_menu_connections" >
         	    <item android:title="@string/open_settings_server" />

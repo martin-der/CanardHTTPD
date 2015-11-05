@@ -16,7 +16,6 @@ import net.tetrakoopa.canardhttpd.service.CanardLogger;
 import net.tetrakoopa.canardhttpd.service.http.writer.BaseServlet;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.DirectoryWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.GroupWriter;
-import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.SharedThingWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.TextWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.GenericFileWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.SpecificFileWriter;
@@ -36,6 +35,7 @@ import org.eclipse.jetty.server.Server;
 //import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Writer;
+import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,14 +87,17 @@ public class CanardHTTPD extends Server {
 
 		final SslContextFactory sslContextFactory = new SslContextFactory(true);
 		sslContextFactory.setKeyStorePassword(keyStorePassord);
+		//sslContextFactory.setKeyStore(new KeyStore(keyStorePath));
 
 		Connector maybeChannelConnectorSSL = null;
+
+
 		try {
 			//maybeChannelConnectorSSL = new SslSelectChannelConnector(sslContextFactory);
 		}catch (Exception ex) {
 			Log.e(CanardHTTPDService.TAG, "Could not build SslSocketConnector : "+ex.getMessage(), ex);
 		}
-		connectorSSL = null; //	maybeChannelConnectorSSL;
+		connectorSSL = maybeChannelConnectorSSL;
 		connector = new SelectChannelConnector();
 
 
@@ -195,7 +199,14 @@ public class CanardHTTPD extends Server {
 			return;
 		}
 
-		serveThing(request, response);
+		if (uri.startsWith("/")) {
+			if ( serveThing(request, response)) {
+				Log.i(CanardHTTPDActivity.TAG, "Could not handle url '" + uri +"'");
+			}
+			return;
+		}
+
+		Log.i(CanardHTTPDActivity.TAG, "Could not handle url '" + uri +"'");
 	}
 
 	private boolean serveThing(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
@@ -224,7 +235,7 @@ public class CanardHTTPD extends Server {
 			@Override
 			protected void writeContent(Writer destination, TemplateArg arg) {
 				try {
-					writeThringContent(new PrintStream(response.getOutputStream()), uri);
+					writeThingContent(destination, uri);
 				} catch (IOException ioex) {
 					Log.e(CanardHTTPDService.TAG, "Failed to write thing content (uri='" + uri + "') : " + ioex.getMessage());
 				}
@@ -241,48 +252,43 @@ public class CanardHTTPD extends Server {
 		return false;
 	}
 
-	private boolean writeThringContent(PrintStream stream, String uri) throws IOException {
-		if (uri.startsWith("/")) {
+	private boolean writeThingContent(Writer stream, String uri) throws IOException {
 
-			final BreadCrumb breadCrumb = new BreadCrumb();
-			final SharedThing thing;
-			try {
-				thing = sharesManager.findThingAndBuildBreadCrumb(uri, breadCrumb);
-			} catch (IncorrectUrlException e) {
-				Log.d(CanardHTTPDService.TAG, "Could not find share at '" + uri + "' : " + e.getMessage());
-				return false;
-			}
-
-			if (thing instanceof SharedCollection) {
-				SharedCollection collection = (SharedCollection)thing;
-				if (collection instanceof SharedGroup) {
-					new GroupWriter().write(stream, uri, (SharedGroup) collection);
-				} else {
-					new DirectoryWriter().write(stream, uri, (SharedDirectory) collection);
-				}
-			} else if (thing instanceof SharedText) {
-				textWriter.write(stream, uri, (SharedText) thing);
-			} else if (thing instanceof SharedFile) {
-				final SharedFile sharedFile = (SharedFile)thing;
-				SpecificFileWriter writer = null;
-				if (sharedFile.getMimeType() == null) {
-					final List<SpecificFileWriter> writers = typeMimewriters.get(sharedFile.getMimeType());
-					if (writers != null) {
-						writer = getBestHandler(sharedFile, writers);
-					}
-				}
-				if (writer != null) {
-					writer.write(stream, uri, sharedFile);
-				} else {
-					Log.w(CanardHTTPDActivity.TAG, "No handler found for file with mime '" + sharedFile.getMimeType() + "'");
-					new GenericFileWriter().write(stream, uri, sharedFile);
-				}
-			}
-			return true;
+		final BreadCrumb breadCrumb = new BreadCrumb();
+		final SharedThing thing;
+		try {
+			thing = sharesManager.findThingAndBuildBreadCrumb(uri, breadCrumb);
+		} catch (IncorrectUrlException e) {
+			Log.d(CanardHTTPDService.TAG, "Could not find share at '" + uri + "' : " + e.getMessage());
+			return false;
 		}
 
-		Log.i(CanardHTTPDActivity.TAG, "Could not handle url '" + uri +"'");
-		return false;
+		if (thing instanceof SharedCollection) {
+			SharedCollection collection = (SharedCollection)thing;
+			if (collection instanceof SharedGroup) {
+				new GroupWriter().write(stream, uri, (SharedGroup) collection);
+			} else {
+				new DirectoryWriter().write(stream, uri, (SharedDirectory) collection);
+			}
+		} else if (thing instanceof SharedText) {
+			textWriter.write(stream, uri, (SharedText) thing);
+		} else if (thing instanceof SharedFile) {
+			final SharedFile sharedFile = (SharedFile)thing;
+			SpecificFileWriter writer = null;
+			if (sharedFile.getMimeType() == null) {
+				final List<SpecificFileWriter> writers = typeMimewriters.get(sharedFile.getMimeType());
+				if (writers != null) {
+					writer = getBestHandler(sharedFile, writers);
+				}
+			}
+			if (writer != null) {
+				writer.write(stream, uri, sharedFile);
+			} else {
+				Log.w(CanardHTTPDActivity.TAG, "No handler found for file with mime '" + sharedFile.getMimeType() + "'");
+				new GenericFileWriter().write(stream, uri, sharedFile);
+			}
+		}
+		return true;
 	}
 	
 	private void serveWWWStaticResource(HttpServletRequest request, HttpServletResponse response, String resource) throws IOException {

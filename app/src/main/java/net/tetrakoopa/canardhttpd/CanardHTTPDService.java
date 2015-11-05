@@ -85,7 +85,7 @@ public class CanardHTTPDService extends Service {
 	}
 	private void showNotification(final Intent applicationIntent) {
 
-		final String title = message(R.string.srv_name);
+		final String title = message(R.string.app_name);
 		final String text = message(R.string.server_status_no_download);
 		String info = ""+sharesManager.getThings().size()+" object(s)";
 
@@ -201,7 +201,7 @@ public class CanardHTTPDService extends Service {
 		return ResourcesUtil.getString(this, id);
 	}
 
-	public class NotificationEventReceiver extends BroadcastReceiver {
+	public static class NotificationEventReceiver extends BroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {

@@ -3,7 +3,7 @@ package net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.AbstractSharedThingWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.SharedThingWriter;
-import net.tetrakoopa.mdu.android.util.FileUtil;
+import net.tetrakoopa.mdu.util.FileUtil;
 
 import java.io.FileInputStream;
 import java.io.IOException;

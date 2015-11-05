@@ -38,7 +38,19 @@
         <activity
             android:name=".SettingsActivity"
             android:label="Settings"
-            >
+            android:parentActivityName=".CanardHTTPDActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".CanardHTTPDActivity" />
+        </activity>
+
+        <activity
+            android:name=".LogActivity"
+            android:label="Log"
+            android:parentActivityName=".CanardHTTPDActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".CanardHTTPDActivity" />
         </activity>
 
     </application>

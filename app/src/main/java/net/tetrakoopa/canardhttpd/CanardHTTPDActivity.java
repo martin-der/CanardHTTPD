@@ -62,9 +62,9 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 		setContentView(R.layout.activity_canard_httpd);
 
-		View mainView = findViewById(R.id.main);
+		final View mainView = findViewById(R.id.main);
 
-		mainAction = new MainAction(this, mainView);
+		mainAction = new MainAction(this, savedInstanceState, mainView);
 		mainAction.doPrepareLayoutAndStuff();
 
 		final ContractuelUtil.PreferenceSavingAndActivityClosingAcceptanceResponse eulaResponseHandler = new ContractuelUtil.PreferenceSavingAndActivityClosingAcceptanceResponse(this, "legal", "eula.accepted");
@@ -226,7 +226,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		int id = item.getItemId();
 
 		if (id==R.id.action_menu_settings) {
-			startActivity(new Intent(SettingsActivity.MANIFEST_ACTIVITY), savedInstanceState);
+			startActivity(new Intent(this, SettingsActivity.class), savedInstanceState);
 			return true;
 		}
 
