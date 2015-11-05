@@ -1,6 +1,7 @@
 package net.tetrakoopa.canardhttpd;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -56,8 +57,6 @@ public class CanardHTTPDService extends Service {
 	@Override
 	public void onCreate() {
 		Log.d(TAG, "onCreate");
-
-		PendingIntent.getActivity(this, 0, new Intent(this, CanardHTTPDActivity.class), 0);
 	}
 
 	@Override
@@ -82,22 +81,24 @@ public class CanardHTTPDService extends Service {
 		//((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
 		stopForeground(true);
 	}
-	private void showNotification(final Intent notificationIntent) {
+	private void showNotification(final Intent applicationIntent) {
 
 		final String title = message(R.string.srv_name);
 		final String text = message(R.string.server_status_no_download);
 		String info = ""+sharesManager.getThings().size()+" object(s)";
 
 		Intent deleteIntent = new Intent(this, HTTPServerCancelReceiver.class);
-		PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(this, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		PendingIntent pendingIntentStop = PendingIntent.getBroadcast(this, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		PendingIntent pendingIntentKill = PendingIntent.getBroadcast(this, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		Notification.Builder builder = new Notification.Builder(this);
 		builder.setContentTitle(title).setSmallIcon(R.mipmap.canard_httpd_server);
 		builder.setContentText(text).setContentInfo(info);
 		builder.setOngoing(true);
-		builder.addAction(android.R.drawable.stat_sys_download_done, message(R.string.server_action_finish_then_stop), PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT));
-		builder.addAction(android.R.drawable.ic_notification_clear_all, message(R.string.server_action_kill), pendingIntentCancel);
+		builder.addAction(android.R.drawable.stat_sys_download_done, message(R.string.server_action_finish_then_stop), pendingIntentStop);
+		builder.addAction(android.R.drawable.ic_notification_clear_all, message(R.string.server_action_kill), pendingIntentKill);
 		Notification notification = builder.build();
+		notification.contentIntent = PendingIntent.getActivity(this, 0, applicationIntent, Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
 		//((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notification);
 		startForeground(NOTIFICATION_ID, notification);

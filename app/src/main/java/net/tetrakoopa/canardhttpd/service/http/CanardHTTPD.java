@@ -245,7 +245,7 @@ public class CanardHTTPD extends Server {
 		if (uri.startsWith("/")) {
 
 			final BreadCrumb breadCrumb = new BreadCrumb();
-			SharedThing thing;
+			final SharedThing thing;
 			try {
 				thing = sharesManager.findThingAndBuildBreadCrumb(uri, breadCrumb);
 			} catch (IncorrectUrlException e) {
