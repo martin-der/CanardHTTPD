@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Vector;
 
-public class FastMustacheShaver<CONTEXT> implements  MustacheShaver<CONTEXT> {
+public class FastEnclosedTextConverter<CONTEXT> implements EnclosedTextConverter<CONTEXT> {
 
 	private final static char MUSTACHE_IN[] = "{{".toCharArray();
 	private final static char MUSTACHE_OUT[] = "}}".toCharArray();
@@ -37,7 +35,7 @@ public class FastMustacheShaver<CONTEXT> implements  MustacheShaver<CONTEXT> {
 //	}
 //
 //
-	public void process(Reader source, Writer destination, CONTEXT context, BarberTools<CONTEXT> tools) throws IOException {
+	public void process(Reader source, Writer destination, CONTEXT context, ConverterTools<CONTEXT> tools) throws IOException {
 
 	/*		final Vector<StackElement> stackElements = new Vector<StackElement>();
 
@@ -78,11 +76,11 @@ public class FastMustacheShaver<CONTEXT> implements  MustacheShaver<CONTEXT> {
 		}*/
 	}
 //
-//	private void applyTool(String key, Reader source, Writer destination, CONTEXT context, BarberTools<CONTEXT> tools, Vector<StackElement> stackElements) throws IOException {
+//	private void applyTool(String key, Reader source, Writer destination, CONTEXT context, ConverterTools<CONTEXT> tools, Vector<StackElement> stackElements) throws IOException {
 //
 //		key = key.trim();
 //		if ("".equals(key)) {
-//			tools.shave(context, "", destination, 0);
+//			tools.convert(context, "", destination, 0);
 //			return;
 //		}
 //
@@ -117,14 +115,14 @@ public class FastMustacheShaver<CONTEXT> implements  MustacheShaver<CONTEXT> {
 //			return;
 //		}
 //
-//		tools.shave(context, key, destination, extraMustaches);
+//		tools.convert(context, key, destination, extraMustaches);
 //	}
 //
-//	private void handleEndTag(String key, Writer destination, CONTEXT context, BarberTools<CONTEXT> tools, Vector<StackElement> stackElements) {
+//	private void handleEndTag(String key, Writer destination, CONTEXT context, ConverterTools<CONTEXT> tools, Vector<StackElement> stackElements) {
 //
 //	}
 //
-//	private void handleEval(String key, Reader source, Writer destination, CONTEXT context, BarberTools<CONTEXT> tools, Vector<StackElement> stackElements, int extraMustaches) throws IOException {
+//	private void handleEval(String key, Reader source, Writer destination, CONTEXT context, ConverterTools<CONTEXT> tools, Vector<StackElement> stackElements, int extraMustaches) throws IOException {
 //
 //		final boolean extraEval;
 //
@@ -153,7 +151,7 @@ public class FastMustacheShaver<CONTEXT> implements  MustacheShaver<CONTEXT> {
 //		}
 //		if (comment instanceof Boolean) {
 //			if (extraEval) {
-//				tools.shave(context, key, destination, extraMustaches);
+//				tools.convert(context, key, destination, extraMustaches);
 //			} else {
 //				handleConditionnalView((Boolean) comment, key, source, destination, context, tools, stackElements, extraMustaches);
 //			}
@@ -161,7 +159,7 @@ public class FastMustacheShaver<CONTEXT> implements  MustacheShaver<CONTEXT> {
 //		}
 //	}
 //
-//	private void handleConditionnalView(Boolean showView, String showViewName, Reader source, Writer destination, CONTEXT context, BarberTools<CONTEXT> tools, Vector<StackElement> stackElements, int extraMustaches) throws IOException {
+//	private void handleConditionnalView(Boolean showView, String showViewName, Reader source, Writer destination, CONTEXT context, ConverterTools<CONTEXT> tools, Vector<StackElement> stackElements, int extraMustaches) throws IOException {
 //		if (Boolean.TRUE.equals(showView)) {
 //			process(source, destination, context, tools);
 //			if (!showViewName.equals(null)) {
@@ -178,7 +176,7 @@ public class FastMustacheShaver<CONTEXT> implements  MustacheShaver<CONTEXT> {
 //		// TODO
 //	}
 //
-//	private void handleCollection(Collection<?> collection, Writer destination, CONTEXT context, BarberTools<CONTEXT> tools, Vector<StackElement> stackElements, int extraMustaches) {
+//	private void handleCollection(Collection<?> collection, Writer destination, CONTEXT context, ConverterTools<CONTEXT> tools, Vector<StackElement> stackElements, int extraMustaches) {
 //		stackElements.add(new StackElement());
 //
 //	}
