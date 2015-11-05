@@ -1,12 +1,21 @@
-package net.tetrakoopa.mdu.android.util;
+package net.tetrakoopa.mdu.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 
 public class FileUtil {
+
+	public static String getAsString(Reader reader) throws IOException {
+		final char buffer[] = new char[200];
+		int l;
+		final StringBuffer stringBufferSource = new StringBuffer();
+		while ((l=reader.read(buffer))>0) { stringBufferSource.append(buffer, 0, l); }
+		return stringBufferSource.toString();
+	}
 
 	public static void copy(InputStream input, OutputStream output) throws IOException {
 		byte buffer[] = new byte[200];
