@@ -11,9 +11,7 @@ import java.util.Map;
 public class CollectionWriter<C extends SharedCollection> extends AbstractSharedThingWriter<C> {
 
 	@Override
-	protected final void writeHtmlDetails(PrintStream stream, String uri, C collection,
-			Method method, Map<String, String> headers,
-			Map<String, String> params, Map<String, String> files)
+	protected final void writeThing(PrintStream stream, String uri, C collection)
 			throws IOException {
 
 		stream.append("<table class=\"shared-things\">\n");

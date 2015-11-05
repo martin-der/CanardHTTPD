@@ -7,7 +7,6 @@ import net.tetrakoopa.canardhttpd.service.http.writer.BaseServlet;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 public abstract class AbstractSharedThingWriter<THING extends SharedThing> extends BaseServlet implements SharedThingWriter<THING> {
 
 	@Override
-	public final void write(PrintStream stream, final String uri, final THING sharedThing, final Method method, final Map<String, String> headers, final Map<String, String> params, final Map<String, String> files) throws IOException {
+	public final void write(PrintStream stream, final String uri, final THING sharedThing) throws IOException {
 		java.text.DateFormat dateFormat = DateFormat.getMediumDateFormat(getContext());
 		stream.append("<div class=\"information\">");
 
@@ -29,11 +28,11 @@ public abstract class AbstractSharedThingWriter<THING extends SharedThing> exten
 		stream.append("</div>");
 
 		stream.append("<div class=\"detail\">");
-		writeHtmlDetails(stream, uri, sharedThing, method, headers, params, files);
+		writeThing(stream, uri, sharedThing);
 		stream.append("</div></div>");
 	}
 
-	protected abstract void writeHtmlDetails(PrintStream stream, String uri, final THING thing, Method method, Map<String, String> headers, Map<String, String> params, Map<String, String> files) throws IOException;
+	protected abstract void writeThing(PrintStream stream, String uri, final THING thing) throws IOException;
 
 	@Override
 	public final void doGet(HttpServletRequest request, HttpServletResponse response) {

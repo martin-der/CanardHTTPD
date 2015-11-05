@@ -17,7 +17,7 @@ public class ImageWriter extends SpecificFileWriter {
 	}
 
 	@Override
-	public void writeHtmlDetails(PrintStream stream, String uri, SharedFile sharedFile, Method method, Map<String, String> headers, Map<String, String> params, Map<String, String> files) throws IOException {
+	public void writeThing(PrintStream stream, String uri, SharedFile sharedFile) throws IOException {
 		stream.append("<img src=\"" + uri + "\" style=\"width:200px;\"/>");
 	}
 

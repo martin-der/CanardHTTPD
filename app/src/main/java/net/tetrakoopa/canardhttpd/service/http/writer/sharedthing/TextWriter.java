@@ -9,7 +9,7 @@ public class TextWriter extends AbstractSharedThingWriter<SharedText> implements
 
 
 	@Override
-	public void writeHtmlDetails(PrintStream stream, String uri, SharedText sharedText, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
+	public void writeThing(PrintStream stream, String uri, SharedText sharedText) {
 		stream.append("<pre style=\"word-wrap: break-word; white-space: pre-wrap;\">" + escapedXmlContent(sharedText.getText()) + "</pre>");
 	}
 

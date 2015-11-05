@@ -16,9 +16,12 @@ import net.tetrakoopa.canardhttpd.service.CanardLogger;
 import net.tetrakoopa.canardhttpd.service.http.writer.BaseServlet;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.DirectoryWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.GroupWriter;
+import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.SharedThingWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.TextWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.GenericFileWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.SpecificFileWriter;
+import net.tetrakoopa.canardhttpd.service.http.writer.template.PageWriter;
+import net.tetrakoopa.canardhttpd.service.http.writer.template.TemplateArg;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.service.sharing.exception.IncorrectUrlException;
 import net.tetrakoopa.canardhttpd.util.TemporaryMimeTypeUtil;
@@ -39,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +62,8 @@ public class CanardHTTPD extends Server {
 
 	private final Context context;
 	private final SharesManager sharesManager;
+
+	private String encoding = "UTF-8";
 	
 	private static final int MAX_IDLE_TIME = 30000;
 
@@ -75,8 +81,8 @@ public class CanardHTTPD extends Server {
 	}
 
 	private void init_Jetty_v8(int port, int sercurePort, String keyStorePath, String keyStorePassord) {
-		final Connector connectorSSL_v8;
-		final Connector connector_v8;
+		final Connector connectorSSL;
+		final Connector connector;
 
 		final SslContextFactory sslContextFactory = new SslContextFactory(true);
 		sslContextFactory.setKeyStorePassword(keyStorePassord);
@@ -87,65 +93,27 @@ public class CanardHTTPD extends Server {
 		}catch (Exception ex) {
 			Log.e(CanardHTTPDService.TAG, "Could not build SslSocketConnector : "+ex.getMessage(), ex);
 		}
-		connectorSSL_v8 = null; //	maybeChannelConnectorSSL;
-		connector_v8 = new SelectChannelConnector();
+		connectorSSL = null; //	maybeChannelConnectorSSL;
+		connector = new SelectChannelConnector();
 
 
-		if (connectorSSL_v8 !=null) {
-			connectorSSL_v8.setPort(sercurePort);
-			connectorSSL_v8.setMaxIdleTime(MAX_IDLE_TIME);
+		if (connectorSSL !=null) {
+			connectorSSL.setPort(sercurePort);
+			connectorSSL.setMaxIdleTime(MAX_IDLE_TIME);
 		}
 
-		connector_v8.setPort(port);
-		connector_v8.setMaxIdleTime(MAX_IDLE_TIME);
-		//connector_v8.setAcceptQueueSize(2);
+		connector.setPort(port);
+		connector.setMaxIdleTime(MAX_IDLE_TIME);
+		//connector.setAcceptQueueSize(2);
 
-		if (connectorSSL_v8 !=null) {
-			this.setConnectors(new Connector[] {connectorSSL_v8, connector_v8 });
+		if (connectorSSL !=null) {
+			this.setConnectors(new Connector[] {connectorSSL, connector });
 		} else {
-			this.setConnectors(new Connector[] { connector_v8 });
+			this.setConnectors(new Connector[] { connector });
 		}
 		this.setHandler(handler);
 
 	}
-	private void init_Jetty_v9(int port, int sercurePort, String keyStorePath, String keyStorePassord) {
-		/*final ServerConnector connectorSSL_v9;
-		final ServerConnector connector_v9;
-
-		HttpConfiguration http_config = new HttpConfiguration();
-		//http_config.setSecurePort(8083);
-
-		final SslContextFactory sslContextFactory = new SslContextFactory(true);
-		sslContextFactory.setKeyStorePassword(keyStorePassord);
-
-		Connector maybeChannelConnectorSSL = null;
-		try {
-			//maybeChannelConnectorSSL = new SslSelectChannelConnector(sslContextFactory);
-		}catch (Exception ex) {
-			Log.e(CanardHTTPDService.TAG, "Could not build SslSocketConnector : "+ex.getMessage(), ex);
-		}
-		connectorSSL_v9 = null; //	maybeChannelConnectorSSL;
-		connector_v9 = new ServerConnector(this,	new HttpConnectionFactory(http_config));
-
-
-		if (connectorSSL_v9 !=null) {
-			connectorSSL_v9.setPort(sercurePort);
-			connectorSSL_v9.setIdleTimeout(MAX_IDLE_TIME);
-			connectorSSL_v9.setReuseAddress(true);
-		}
-
-		connector_v9.setPort(port);
-		connector_v9.setIdleTimeout(MAX_IDLE_TIME);
-		connector_v9.setAcceptQueueSize(2);
-
-		if (connectorSSL_v9 !=null) {
-			this.setConnectors(new Connector[] {connectorSSL_v9, connector_v9 });
-		} else {
-			this.setConnectors(new Connector[] { connector_v9 });
-		}
-		this.setHandler(handler);*/
-	}
-
 
 	private final Handler handler = new AbstractHandler()
 	{
@@ -169,6 +137,21 @@ public class CanardHTTPD extends Server {
 		return context.getAssets().open(asset);
 	}
 
+	protected void serveAssetOrNotFound(HttpServletRequest request, HttpServletResponse response, String assetName) throws IOException {
+		final String mimeType = findMimeType(assetName);
+		serveAssetOrNotFound(request, response, assetName, mimeType);
+	}
+
+	private String findMimeType(String assetName) {
+
+		switch(assetName) {
+			//case : return "application/x-png";
+
+		}
+
+		return null;
+ 	}
+
 	protected void serveAssetOrNotFound(HttpServletRequest request, HttpServletResponse response, String assetName, String mimeType) throws IOException {
 		final InputStream inputStream;
 		try {
@@ -181,7 +164,11 @@ public class CanardHTTPD extends Server {
 	}
 
 	private void serveFile(HttpServletRequest request, HttpServletResponse response, String mimeType, InputStream inputStream) throws IOException {
-		response.setContentType(mimeType);
+		if (mimeType != null) {
+			response.setContentType(mimeType);
+		} else {
+			Log.w(CanardHTTPDActivity.TAG, "Serving resource with unknown contentType");
+		}
 		response.setStatus(HttpServletResponse.SC_OK);
 		final OutputStream output = response.getOutputStream();
 		byte buffer[] = new byte[1000];
@@ -197,19 +184,23 @@ public class CanardHTTPD extends Server {
 	public void serve(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		final String uri = request.getRequestURI();
 
-		if (request.getRequestURI().equals("/favicon"))
+		if (uri.equals("/favicon") || uri.equals("/favicon.ico")) {
 			serveAssetOrNotFound(request, response, "www/public-resources/image/Web-Browser-icon-48.png", MIME_PNG);
+			return;
+		}
+
 
 		if (uri.startsWith("/~/")) {
 			serveWWWStaticResource(request, response, uri.substring(2));
+			return;
 		}
 
 		serveThing(request, response);
 	}
 
-	private boolean serveThing(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	private boolean serveThing(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 		final String uri = request.getRequestURI();
-		final PrintStream stream = new PrintStream(response.getOutputStream());
+		final PrintStream stream = new PrintStream(response.getOutputStream(), true, encoding);
 		// response.get
 
 //		Map<String, List<String>> parameters = new HashMap<String, List<String>>();
@@ -221,12 +212,38 @@ public class CanardHTTPD extends Server {
 
 		final BaseServlet.Method method = BaseServlet.Method.fromName(request.getMethod());
 
-		Map<String, String> headers = null;
-		Map<String, String> params = null;
-		;
-		Map<String, String> files = null;
+		final Map<String, String> headers = null; //request.getParameterMap();
+		final Map<String, String[]> params = request.getParameterMap();
 
+		final PageWriter pageWriter = new PageWriter() {
+			@Override
+			protected void writeHeader(Writer destination, TemplateArg arg) {
+				//writeAsset("www/template/piece/header.html", destination);
+			}
+
+			@Override
+			protected void writeContent(Writer destination, TemplateArg arg) {
+				try {
+					writeThringContent(new PrintStream(response.getOutputStream()), uri);
+				} catch (IOException ioex) {
+					Log.e(CanardHTTPDService.TAG, "Failed to write thing content (uri='" + uri + "') : " + ioex.getMessage());
+				}
+			}
+
+			@Override
+			protected void writeFooter(Writer destination, TemplateArg arg) {
+				//writeAsset("www/template/piece/footer.html", destination);
+			}
+		};
+
+		pageWriter.write(stream, null);
+
+		return false;
+	}
+
+	private boolean writeThringContent(PrintStream stream, String uri) throws IOException {
 		if (uri.startsWith("/")) {
+
 			final BreadCrumb breadCrumb = new BreadCrumb();
 			SharedThing thing;
 			try {
@@ -238,13 +255,13 @@ public class CanardHTTPD extends Server {
 
 			if (thing instanceof SharedCollection) {
 				SharedCollection collection = (SharedCollection)thing;
-				 if (collection instanceof SharedGroup) {
-					 new GroupWriter().write(stream, uri, (SharedGroup)collection, method, headers, params, files);
-				 } else {
-					 new DirectoryWriter().write(stream, uri, (SharedDirectory)collection, method, headers, params, files);
-				 }
+				if (collection instanceof SharedGroup) {
+					new GroupWriter().write(stream, uri, (SharedGroup) collection);
+				} else {
+					new DirectoryWriter().write(stream, uri, (SharedDirectory) collection);
+				}
 			} else if (thing instanceof SharedText) {
-				textWriter.write(stream, uri, (SharedText)thing, method, headers, params, files);
+				textWriter.write(stream, uri, (SharedText) thing);
 			} else if (thing instanceof SharedFile) {
 				final SharedFile sharedFile = (SharedFile)thing;
 				SpecificFileWriter writer = null;
@@ -255,16 +272,16 @@ public class CanardHTTPD extends Server {
 					}
 				}
 				if (writer != null) {
-					writer.write(stream, uri, sharedFile, method, headers, params, files);
+					writer.write(stream, uri, sharedFile);
 				} else {
 					Log.w(CanardHTTPDActivity.TAG, "No handler found for file with mime '" + sharedFile.getMimeType() + "'");
-					new GenericFileWriter().write(stream, uri, sharedFile, method, headers, params, files);
+					new GenericFileWriter().write(stream, uri, sharedFile);
 				}
 			}
+			return true;
 		}
 
 		Log.i(CanardHTTPDActivity.TAG, "Could not handle url '" + uri +"'");
-
 		return false;
 	}
 	

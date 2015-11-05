@@ -13,7 +13,7 @@ import java.util.Map;
 
 public abstract class FileWriter extends AbstractSharedThingWriter<SharedFile> implements SharedThingWriter<SharedFile> {
 
-	public final void writeRaw(OutputStream stream, SharedFile sharedFile, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) throws IOException {
+	public final void writeRaw(OutputStream stream, SharedFile sharedFile, Method method, Map<String, String[]> headers, Map<String, String[]> parms) throws IOException {
 		final InputStream inputStream = new FileInputStream(sharedFile.getFile());
 		FileUtil.copy(inputStream, stream);
 	}

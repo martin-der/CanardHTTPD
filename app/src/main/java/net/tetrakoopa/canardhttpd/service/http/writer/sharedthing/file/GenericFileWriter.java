@@ -12,7 +12,7 @@ public class GenericFileWriter extends FileWriter {
 	private static final long serialVersionUID = 2738856182718165033L;
 
 	@Override
-	protected void writeHtmlDetails(PrintStream stream, String uri, SharedFile sharedFile, Method method, Map<String, String> headers, Map<String, String> params, Map<String, String> files) throws IOException {
+	protected void writeThing(PrintStream stream, String uri, SharedFile sharedFile) throws IOException {
 		// TODO Auto-generated method stub
 		stream.append("Some unknown file");
 	}

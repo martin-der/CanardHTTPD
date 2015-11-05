@@ -165,10 +165,10 @@ public class NetworkUtil {
 
 		@Override
 		protected String extractIP(String response) {
-			Pattern p = Pattern.compile(regex);
-			Matcher m = p.matcher(response);
-			if (m.find())
-				return m.group(1);
+			final Pattern pattern = Pattern.compile(regex);
+			final Matcher matcher = pattern.matcher(response);
+			if (matcher.find())
+				return matcher.group(1);
 			return null;
 		}
 

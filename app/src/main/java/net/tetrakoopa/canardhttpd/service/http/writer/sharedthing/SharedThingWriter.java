@@ -9,6 +9,6 @@ import java.util.Map;
 
 public interface SharedThingWriter<THING extends SharedThing> {
 
-	void write(PrintStream stream, String uri, THING thing, Method method, Map<String, String> headers, Map<String, String> params, Map<String, String> files) throws IOException;
+	void write(PrintStream stream, String uri, THING thing) throws IOException;
 
 }

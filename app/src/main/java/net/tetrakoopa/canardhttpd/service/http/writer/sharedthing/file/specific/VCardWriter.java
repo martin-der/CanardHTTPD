@@ -17,7 +17,7 @@ public class VCardWriter extends SpecificFileWriter {
 	}
 
 	@Override
-	public void writeHtmlDetails(PrintStream stream, String uri, SharedFile thing, Method method, Map<String, String> headers, Map<String, String> params, Map<String, String> files) throws IOException {
+	public void writeThing(PrintStream stream, String uri, SharedFile thing) throws IOException {
 		stream.write("This is a VCARD !".getBytes());
 	}
 
