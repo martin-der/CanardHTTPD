@@ -6,12 +6,14 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener.ActionTrigger;
 import net.tetrakoopa.canardhttpd.listener.HTTPServerCancelReceiver;
@@ -87,7 +89,7 @@ public class CanardHTTPDService extends Service {
 		final String text = message(R.string.server_status_no_download);
 		String info = ""+sharesManager.getThings().size()+" object(s)";
 
-		Intent deleteIntent = new Intent(this, HTTPServerCancelReceiver.class);
+		Intent deleteIntent = new Intent(this, NotificationEventReceiver.class);
 		PendingIntent pendingIntentStop = PendingIntent.getBroadcast(this, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 		PendingIntent pendingIntentKill = PendingIntent.getBroadcast(this, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -199,4 +201,12 @@ public class CanardHTTPDService extends Service {
 		return ResourcesUtil.getString(this, id);
 	}
 
+	public class NotificationEventReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Toast.makeText(context, "Clicked some button", Toast.LENGTH_SHORT).show();
+
+		}
+	}
 }
