@@ -58,8 +58,6 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 		this.savedInstanceState = savedInstanceState;
 
-		CommonHTMLComponent.setContext(this);
-
 		setContentView(R.layout.activity_canard_httpd);
 
 		final View mainView = findViewById(R.id.main);

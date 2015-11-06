@@ -24,13 +24,13 @@ public class BufferedEnclosedTextConverter<CONTEXT> implements EnclosedTextConve
         final Matcher matcher = pattern.matcher(sourceString);
         int lastWriten = 0;
         while (matcher.find()) {
-            final int start = matcher.regionStart();
+            final int start = matcher.start(1);
             if (lastWriten<start) {
                 destination.append(sourceString.substring(lastWriten, start));
             }
             final String group = matcher.group(1);
             tools.convert(context, group.substring(2, group.length() - 2), destination, 0);
-            lastWriten = matcher.regionEnd();
+            lastWriten = matcher.end(1);
         }
         if (lastWriten<sourceLen) {
             destination.append(sourceString.substring(lastWriten, sourceLen));

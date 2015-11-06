@@ -119,20 +119,20 @@ public class CanardHTTPDService extends Service {
 		return server != null && server.isStarted();
 	}
 
-	public void start(Intent intent, ServerStatusChangeListener listener) {
+	public void start(Intent intent, CanardHTTPDActivity canardHTTPDActivity, ServerStatusChangeListener listener) {
 		//Toast.makeText(this.getApplicationContext(), "start | starting service...", Toast.LENGTH_SHORT).show();
 		super.startService(intent);
 		//Toast.makeText(this.getApplicationContext(), "start | service started", Toast.LENGTH_SHORT).show();
-		startServer(listener);
+		startServer(listener, canardHTTPDActivity);
 		//Toast.makeText(this.getApplicationContext(), "start | HTTPD started", Toast.LENGTH_SHORT).show();
 	}
-	private synchronized void startServer(ServerStatusChangeListener listener) {
+	private synchronized void startServer(ServerStatusChangeListener listener, CanardHTTPDActivity canardHTTPDActivity) {
 
 		if (listener != null)
 			listener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.STARTING, null);
 		try {
 			Log.d(TAG, "HTTP Server : creating...");
-			server = new CanardHTTPD(this, sharesManager, null, requestedPort, requestedSecurePort, "file:///android_asset/security/martin.home.crt.psk", "martin home");
+			server = new CanardHTTPD(canardHTTPDActivity, sharesManager, null, requestedPort, requestedSecurePort, "file:///android_asset/security/martin.home.crt.psk", "martin home");
 			Log.d(TAG, "HTTP Server : starting...");
 			server.start();
 			//server.join();

@@ -1,12 +1,13 @@
 package net.tetrakoopa.canardhttpd.service.http.writer.template;
 
+import android.content.Context;
+
 import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 import net.tetrakoopa.mdu.text.formater.BufferedEnclosedTextConverter;
 import net.tetrakoopa.mdu.text.formater.EnclosedTextConverter;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -58,8 +59,9 @@ public abstract class PageWriter extends CommonHTMLComponent {
 	private final Map<String, ReplacerTool> writerContext = new HashMap<>();
 
 
-	protected PageWriter() {
-		writerContext.put("static-resources.url", new SimpleStringReplacerTool("/~/"));
+	protected PageWriter(Context context) {
+		super(context);
+		writerContext.put("static-resources.url", new SimpleStringReplacerTool("/~"));
 		writerContext.put("html.head", null);
 		writerContext.put("body.header", new ReplacerTool() {
 			@Override
@@ -106,14 +108,14 @@ public abstract class PageWriter extends CommonHTMLComponent {
 
 	private final static TemplateArg NO_PARAM = new TemplateArg();
 
-	public void write(PrintStream stream, TemplateArg arg) throws IOException {
+	public void write(PrintWriter writer, TemplateArg arg) throws IOException {
 
 		if (arg == null)
 			arg = NO_PARAM;
 
 		final Reader reader = new InputStreamReader(getAsset("www/template/layout/classic_HeaderFooter_Vertical.html"), "UTF-8");
 
-		replacer.process(reader, new PrintWriter(stream), writerContext, barberTools);
+		replacer.process(reader, writer, writerContext, barberTools);
 
 	}
 

@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -141,10 +142,10 @@ public class CanardHTTPD extends Server {
 				serve(request, response);
 				((Request) request).setHandled(true);
 				final long end = System.nanoTime();
-				CanardLogger.d("Request for '" + request.getRequestURI() + "' served in " + (end - begin) + " ms");
+				CanardLogger.d("Request for '" + request.getRequestURI() + "' served in " + ((end - begin)/1000) + " ms");
 			} catch (Exception ex) {
 				final long end = System.nanoTime();
-				CanardLogger.e("Failed to serve '" + request.getRequestURI() + "' ( after " + (end - begin) + " ms )");
+				CanardLogger.e("Failed to serve '" + request.getRequestURI() + "' ( after " + ((end - begin)/1000) + " ms )");
 			}
 		}
 	};
@@ -218,12 +219,12 @@ public class CanardHTTPD extends Server {
 			return;
 		}
 
-		Log.i(CanardHTTPDActivity.TAG, "Could not handle url '" + uri +"'");
+		Log.i(CanardHTTPDActivity.TAG, "Could not handle url '" + uri + "'");
 	}
 
 	private boolean serveThing(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 		final String uri = request.getRequestURI();
-		final PrintStream stream = new PrintStream(response.getOutputStream(), true, encoding);
+		final PrintWriter writer = new PrintWriter(response.getOutputStream());
 		// response.get
 
 //		Map<String, List<String>> parameters = new HashMap<String, List<String>>();
@@ -236,33 +237,37 @@ public class CanardHTTPD extends Server {
 		final Map<String, String> headers = null; //request.getParameterMap();
 		final Map<String, String[]> params = request.getParameterMap();
 
-		final PageWriter pageWriter = new PageWriter() {
+		final PageWriter pageWriter = new PageWriter(context) {
 			@Override
-			protected void writeHeader(Writer destination, TemplateArg arg) {
-				//writeAsset("www/template/piece/header.html", destination);
+			protected void writeHeader(Writer writer, TemplateArg arg) {
+				writeAsset("www/template/piece/header.html", writer);
 			}
 
 			@Override
 			protected void writeContent(Writer destination, TemplateArg arg) {
 				try {
-					CanardHTTPD.this.writeContent(destination, uri);
+					if (!CanardHTTPD.this.writeContent(destination, uri)) {
+						Log.e(CanardHTTPDService.TAG, "Failed to write thing content (uri='" + uri + "')");
+					};
 				} catch (IOException ioex) {
 					Log.e(CanardHTTPDService.TAG, "Failed to write thing content (uri='" + uri + "') : " + ioex.getMessage());
 				}
 			}
 
 			@Override
-			protected void writeFooter(Writer destination, TemplateArg arg) {
-				//writeAsset("www/template/piece/footer.html", destination);
+			protected void writeFooter(Writer writer, TemplateArg arg) {
+				writeAsset("www/template/piece/footer.html", writer);
 			}
 		};
 
-		pageWriter.write(stream, null);
+		pageWriter.write(writer, null);
+
+		writer.flush();
 
 		return false;
 	}
 
-	private boolean writeContent(Writer stream, String uri) throws IOException {
+	private boolean writeContent(Writer writer, String uri) throws IOException {
 
 		final BreadCrumb breadCrumb = new BreadCrumb();
 		final SharedThing thing;
@@ -276,23 +281,23 @@ public class CanardHTTPD extends Server {
 		if (thing instanceof SharedCollection) {
 			SharedCollection collection = (SharedCollection)thing;
 			if (collection instanceof SharedGroup) {
-				groupWriter.write(stream, uri, (SharedGroup) collection);
+				groupWriter.write(writer, uri, (SharedGroup) collection);
 			} else {
-				directoryWriter.write(stream, uri, (SharedDirectory) collection);
+				directoryWriter.write(writer, uri, (SharedDirectory) collection);
 			}
 		} else if (thing instanceof SharedText) {
-			textWriter.write(stream, uri, (SharedText) thing);
+			textWriter.write(writer, uri, (SharedText) thing);
 		} else if (thing instanceof SharedFile) {
 			final SharedFile sharedFile = (SharedFile)thing;
-			SpecificFileWriter writer = null;
+			SpecificFileWriter specificWriter = null;
 			if (sharedFile.getMimeType() != null) {
-				writer = SpecificFileWriter.getBestHandler(sharedFile.getMimeType(), typeMimeWriters);
+				specificWriter = SpecificFileWriter.getBestHandler(sharedFile.getMimeType(), typeMimeWriters);
 			}
-			if (writer != null) {
-				writer.write(stream, uri, sharedFile);
+			if (specificWriter != null) {
+				specificWriter.write(writer, uri, sharedFile);
 			} else {
 				Log.w(CanardHTTPDActivity.TAG, "No handler found for file with mime '" + sharedFile.getMimeType() + "'");
-				genericFileWriter.write(stream, uri, sharedFile);
+				genericFileWriter.write(writer, uri, sharedFile);
 			}
 		}
 		return true;

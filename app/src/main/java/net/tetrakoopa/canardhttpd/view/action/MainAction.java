@@ -105,7 +105,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 					service().stop(serverChangeListener);
 				}
 				else {
-					service().start(MainAction.this.activityIntent(), serverChangeListener);
+					service().start(MainAction.this.activityIntent(), activity(),  serverChangeListener);
 				}
 			}
 		});
