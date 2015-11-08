@@ -15,7 +15,8 @@ public class BufferedEnclosedTextConverter<CONTEXT> implements EnclosedTextConve
     private final static char ENCLOSING_START[] = StringUtil.escapeRegex(MUSTACHE_IN);
     private final static char ENCLOSING_STOP[] = StringUtil.escapeRegex(MUSTACHE_OUT);
 
-    private final static Pattern pattern = Pattern.compile("(" + String.valueOf(ENCLOSING_START) + ".*" + String.valueOf(ENCLOSING_STOP) + ")");
+    //private final static Pattern pattern = Pattern.compile("(" + String.valueOf(ENCLOSING_START) + ".*" + String.valueOf(ENCLOSING_STOP) + ")");
+    private final static Pattern pattern = Pattern.compile("(" + String.valueOf(ENCLOSING_START) + "[^\\}]*" + String.valueOf(ENCLOSING_STOP) + ")");
 
     public void process(Reader source, Writer destination, CONTEXT context, ConverterTools<CONTEXT> tools) throws IOException {
         final String sourceString = FileUtil.getAsString(source);
