@@ -14,6 +14,8 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 public abstract class PageWriter extends CommonHTMLComponent {
 
 	public enum Method {
@@ -58,27 +60,39 @@ public abstract class PageWriter extends CommonHTMLComponent {
 
 	private final Map<String, ReplacerTool> writerContext = new HashMap<>();
 
-
-	protected PageWriter(Context context) {
+	protected PageWriter(Context context, final HttpServletRequest request) {
 		super(context);
+
+
 		writerContext.put("static-resources.url", new SimpleStringReplacerTool("/~"));
-		writerContext.put("html.head", null);
+		writerContext.put("client-preference.theme", new ReplacerTool() {
+			@Override
+			public void write(Writer destination, TemplateArg arg) throws IOException {
+				PageWriter.this.writeThemeName(request, destination, arg);
+			}
+		});
+		writerContext.put("html.head", new ReplacerTool() {
+			@Override
+			public void write(Writer destination, TemplateArg arg) throws IOException {
+				PageWriter.this.writeHead(request, destination, arg);
+			}
+		});
 		writerContext.put("body.header", new ReplacerTool() {
 			@Override
-			public void write(Writer destination, TemplateArg arg) {
-				PageWriter.this.writeHeader(destination, arg);
+			public void write(Writer destination, TemplateArg arg) throws IOException {
+				PageWriter.this.writeHeader(request, destination, arg);
 			}
 		});
 		writerContext.put("body.content", new ReplacerTool() {
 			@Override
-			public void write(Writer destination, TemplateArg arg) {
-				PageWriter.this.writeContent(destination, arg);
+			public void write(Writer destination, TemplateArg arg) throws IOException {
+				PageWriter.this.writeContent(request, destination, arg);
 			}
 		});
 		writerContext.put("body.footer", new ReplacerTool() {
 			@Override
-			public void write(Writer destination, TemplateArg arg) {
-				PageWriter.this.writeFooter(destination, arg);
+			public void write(Writer destination, TemplateArg arg) throws IOException {
+				PageWriter.this.writeFooter(request, destination, arg);
 			}
 		});
 	}
@@ -100,9 +114,12 @@ public abstract class PageWriter extends CommonHTMLComponent {
 	};
 
 
-	abstract protected void writeHeader(Writer destination, TemplateArg arg);
-	abstract protected void writeContent(Writer destination, TemplateArg arg);
-	abstract protected void writeFooter(Writer destination, TemplateArg arg);
+
+	abstract protected void writeThemeName(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException;
+	abstract protected void writeHead(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException;
+	abstract protected void writeHeader(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException;
+	abstract protected void writeContent(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException;
+	abstract protected void writeFooter(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException;
 
 	final EnclosedTextConverter<Map<String,ReplacerTool>> replacer = new BufferedEnclosedTextConverter<>();
 

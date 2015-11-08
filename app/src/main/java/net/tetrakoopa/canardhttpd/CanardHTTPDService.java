@@ -132,7 +132,7 @@ public class CanardHTTPDService extends Service {
 			listener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.STARTING, null);
 		try {
 			Log.d(TAG, "HTTP Server : creating...");
-			server = new CanardHTTPD(canardHTTPDActivity, sharesManager, null, requestedPort, requestedSecurePort, "file:///android_asset/security/martin.home.crt.psk", "martin home");
+			server = new CanardHTTPD(canardHTTPDActivity, sharesManager, null, requestedPort, requestedSecurePort, "file:///android_asset/security/martin.home.crt", "martin home");
 			Log.d(TAG, "HTTP Server : starting...");
 			server.start();
 			//server.join();

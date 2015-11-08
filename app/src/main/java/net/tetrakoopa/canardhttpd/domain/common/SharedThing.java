@@ -5,14 +5,14 @@ import java.util.Date;
 
 public interface SharedThing {
 	
-	public static enum ShareStatus {
+	enum ShareStatus {
 		NOT_SHARED, SHARED, SHARED_BUT_REMOVAL_REQUESTED
 	};
 	
 
-	public static class Tag  {
+	class Tag  {
 
-		public static enum SystemAttribute {
+		public enum SystemAttribute {
 			PUBLIC
 		};
 
@@ -67,6 +67,8 @@ public interface SharedThing {
 	}
 
 	String getName();
+
+	String getType();
 
 	String getComment();
 	

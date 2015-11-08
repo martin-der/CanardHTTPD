@@ -57,6 +57,11 @@ div.breadcrumb
 { 
 	text-align: center;
 } 
+div.footer hr {
+	border: 0;
+	height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgb(255, 0, 0), rgba(0, 0, 0, 0));
+}
 
 
 table.shared-things {

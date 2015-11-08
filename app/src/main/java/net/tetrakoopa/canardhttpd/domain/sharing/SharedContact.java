@@ -2,6 +2,7 @@ package net.tetrakoopa.canardhttpd.domain.sharing;
 
 import android.net.Uri;
 
+import net.tetrakoopa.canardhttpd.domain.common.CommonSharedThing;
 import net.tetrakoopa.canardhttpd.domain.common.SharedCollection;
 import net.tetrakoopa.canardhttpd.domain.common.SharedInode;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
@@ -10,28 +11,23 @@ import java.io.File;
 import java.util.List;
 
 
-public class SharedDirectory extends SharedInode implements SharedCollection {
+public class SharedContact extends CommonSharedThing {
 
-	private final boolean allowBrowsing;
+	private final String id;
 
-	public SharedDirectory(Uri uri, String name, boolean allowBrowsing) {
+	public SharedContact(Uri uri, String name, String id) {
 		super(uri, name);
-		this.allowBrowsing = allowBrowsing;
-	}
-
-	public boolean isAllowBrowsing() {
-		return allowBrowsing;
+		this.id = id;
 	}
 
 	@Override
 	public String getType() {
-		return "Directory";
+		return "Contact";
 	}
 
-	@Override
-	public List<SharedThing> getThings() {
-		
-		return null;
+	public String getId() {
+		return id;
 	}
+
 
 }

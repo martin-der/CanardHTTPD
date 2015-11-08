@@ -260,8 +260,8 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 					CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Failed to remove : " + ex.getClass().getName(), ex);
 					return;
 				}
-				SharedThingAdapter.this.notifyDataSetChanged(); // or notifyDataSetInvalidated
-				Toast.makeText(MainAction.this.activity(), "Removed " + thing.getName(), Toast.LENGTH_SHORT).show();
+				MainAction.this.updateSharedThingsList();
+				//Toast.makeText(MainAction.this.activity(), "Removed " + thing.getName(), Toast.LENGTH_SHORT).show();
 
 			}
 		};
@@ -315,30 +315,31 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 				shareButton.setOnClickListener(shareButtonOnClickListener);
 			}
 
-			if (filesManager != null) {
+			TextView name = (TextView) convertView.findViewById(R.id.sharedthing_name);
+			TextView shareDate = (TextView) convertView.findViewById(R.id.sharedthing_shareDate);
+			ImageView icon = (ImageView) convertView.findViewById(R.id.sharedthing_icon);
+			TextView mime = (TextView) convertView.findViewById(R.id.sharedthing_mime);
+			TextView users = (TextView) convertView.findViewById(R.id.sharedthing_users);
 
-				TextView name = (TextView) convertView.findViewById(R.id.sharedthing_name);
-				TextView shareDate = (TextView) convertView.findViewById(R.id.sharedthing_shareDate);
-				ImageView icon = (ImageView) convertView.findViewById(R.id.sharedthing_icon);
-				TextView mime = (TextView) convertView.findViewById(R.id.sharedthing_mime);
-				TextView users = (TextView) convertView.findViewById(R.id.sharedthing_users);
-
-				DateFormat.is24HourFormat(MainAction.this.activity());
+			DateFormat.is24HourFormat(MainAction.this.activity());
 
 
-				name.setText(thing.getName());
-				
-				shareDate.setText(thing.getShareDate() == null ? message(R.string.generic_unknown) : formater.getDateFormat().format(thing.getShareDate()));
-				if (thing instanceof SharedFile) {
-					mime.setText(((SharedFile) thing).getMimeType());
-				} else {
-					mime.setText("");
-				}
-				icon.setImageResource(android.R.drawable.ic_menu_view);
+			name.setText(thing.getName());
+
+			shareDate.setText(thing.getShareDate() == null ? message(R.string.generic_unknown) : formater.getDateFormat().format(thing.getShareDate()));
+			if (thing instanceof SharedFile) {
+				mime.setText(((SharedFile) thing).getMimeType());
+			} else {
+				mime.setText("");
 			}
+			icon.setImageResource(android.R.drawable.ic_menu_view);
 
 			return convertView;
 		}
+	}
+
+	public void updateSharedThingsList() {
+		sharedThingAdapter.notifyDataSetChanged(); // or notifyDataSetInvalidated
 	}
 
 	@Override
@@ -354,6 +355,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 
 	@Override
 	public void onServiceDisconnected(ComponentName name) {
+		Toast.makeText(activity, "Unexpectedly disconnected from Service !", Toast.LENGTH_LONG).show();
 		serverChangeListener.onServerStatusChange(MainAction.this.service(), ActionTrigger.DISCONNECTION, ServerStatus.DOWN, null);
 	}
 

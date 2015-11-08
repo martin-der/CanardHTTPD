@@ -47,11 +47,18 @@
 
     <string name="title_pick_file_to_share">Choose what to share</string>
 
+    <string name="no_activity_for_picking_file_or_directory">Unable to find file/directory chooser application</string>
+
     <string name="title_share_server_info">Share Web Server Access</string>
     <string name="title_share_sharedtext_url">Share text URL</string>
     <string name="title_share_sharedfile_url">Share file URL</string>
     <string name="title_share_sharedfolder_url">Share folder URL</string>
     <string name="title_share_sharedfolder_url_zip">Share zipped folder URL</string>
+
+    <string name="error_title_share_failure">Failed to share</string>
+    <string name="error_failed_to_share_aleady_shared">This is already shared</string>
+    <string name="error_failed_to_share_this_file_type">Cannot share this kind of file</string>
+
 
     <string name="error_failed_server_start">Failed to start server</string>
     <string name="error_failed_server_stop">Failed to stop server</string>
@@ -61,10 +68,9 @@
     <string name="error_explain__could_not_bind">Could no bind port for server. Maybe some other process is already listening on the same port.</string>
     <string name="error_explain__error_unknown_server_error">An unexpected error occurred.</string>
 
-    <string name="error_failed_to_share">Trying to share…</string>
     <string name="error_activity_param_null_mime_type">Unable to guess type of element to share.</string>
     <string name="error_activity_param_unknown_mime_type">Don\'t know how to share this kind of file</string>
-    <string name="error_file_already_share">File is already shared.</string>
+    <string name="error_file_already_shared">File is already shared.</string>
     <string name="error_file_not_shared">File is not shared.</string>
 
 </resources>

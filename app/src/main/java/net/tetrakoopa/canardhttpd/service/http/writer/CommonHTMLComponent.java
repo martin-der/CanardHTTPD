@@ -52,7 +52,7 @@ public abstract class CommonHTMLComponent {
 				writer.write(buffer, 0, l);
 			}
 		} catch (IOException e) {
-			Log.e(CanardHTTPDActivity.TAG, "Could not read asset '" + assetName + "'", e);
+			Log.e(CanardHTTPDActivity.TAG, "Could not write asset '" + assetName + "'", e);
 		}
 	}
 

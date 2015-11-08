@@ -2,21 +2,25 @@ package net.tetrakoopa.canardhttpd.util;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDActivity;
+import net.tetrakoopa.canardhttpd.R;
+import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.service.sharing.exception.AlreadySharedException;
 import net.tetrakoopa.canardhttpd.service.sharing.exception.BadShareTypeException;
-import net.tetrakoopa.mdu.android.util.SystemUtil;
+import net.tetrakoopa.canardhttpd.service.sharing.exception.NotFoundFromUriException;
+import net.tetrakoopa.mdu.android.view.util.SystemUIUtil;
 
 import java.io.File;
 
 public class ShareFeedUtil {
 
-	public static boolean addSharedObjectFromIntentParameter(Activity canardActivity, SharesManager manager) {
+	public static boolean addSharedObjectFromIntentParameter(CanardHTTPDActivity canardActivity, SharesManager manager) {
 		final String type = getIntentType(canardActivity);
 
 		if (type != null) {
@@ -37,7 +41,7 @@ public class ShareFeedUtil {
 		if (streamUri != null) {
 			Toast.makeText(canardActivity, "streamUri = " + streamUri.getClass().getName() + ":" + streamUri.getPath(), Toast.LENGTH_LONG).show();
 			File file = new File(streamUri.getPath());
-			tryToAddFileToSharesElseNotify(canardActivity, manager, file, type);
+			tryToAddFileToSharesElseNotify(canardActivity, manager, streamUri);
 			return true;
 		}
 		
@@ -47,20 +51,44 @@ public class ShareFeedUtil {
 		return false;
 	}
 
-	public static boolean tryToAddFileToSharesElseNotify(final Activity activity, SharesManager manager, final File file, String mimeType) {
+	public static boolean tryToAddFileToSharesElseNotify(final CanardHTTPDActivity activity, SharesManager manager, final Uri uri, String realName) {
+		final String mimetype = TemporaryMimeTypeUtil.getMimeType(realName);
 		try {
-			if (mimeType == null)
-				mimeType = SystemUtil.getMimeType(file);
-			Toast.makeText(activity, "tryToAddFileToShares('" + file.getPath() + "')", Toast.LENGTH_LONG).show();
-			Toast.makeText(activity, "mime = '" + mimeType + "'", Toast.LENGTH_SHORT).show();
-			manager.addInode(file, mimeType);
+			final SharedThing thing = manager.add(activity.getApplicationContext(), uri);
+			Toast.makeText(activity, "Added "+thing.getType()+" '" + thing.getName() + "'", Toast.LENGTH_SHORT).show();
 			return true;
 		} catch (AlreadySharedException e) {
-			//SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_failed_to_share), activity.message(R.string.error_file_already_share));
-			Log.i(CanardHTTPDActivity.TAG, "File '" + file.getPath() + "' already shared");
+			SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), activity.message(R.string.error_file_already_shared));
+			Log.i(CanardHTTPDActivity.TAG, "Uri '" + uri + "' already shared");
 			return false;
 		} catch (BadShareTypeException e) {
-			Log.i(CanardHTTPDActivity.TAG, "File '" + file.getPath() + "' cannot be shared : " + e.getMessage());
+			Log.i(CanardHTTPDActivity.TAG, "Uri '" + uri + "' cannot be shared : " + e.getMessage());
+			Toast.makeText(activity, R.string.error_failed_to_share_this_file_type, Toast.LENGTH_LONG).show();
+			return false;
+		} catch (NotFoundFromUriException e) {
+			final String message = "Uri '" + uri + "' couldn't be shared : " + e.getLocalizedMessage();
+			SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), message);
+			Log.e(CanardHTTPDActivity.TAG, message, e);
+			return false;
+		}
+	}
+	public static boolean tryToAddFileToSharesElseNotify(final CanardHTTPDActivity activity, SharesManager manager, final Uri uri) {
+		try {
+			final SharedThing thing = manager.add(activity.getApplicationContext(), uri);
+			Toast.makeText(activity, "Added "+thing.getType()+ " '" + thing.getName() + "'", Toast.LENGTH_SHORT).show();
+			return true;
+		} catch (AlreadySharedException e) {
+			SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), activity.message(R.string.error_file_already_shared));
+			Log.i(CanardHTTPDActivity.TAG, "Uri '" + uri + "' already shared");
+			return false;
+		} catch (BadShareTypeException e) {
+			Log.i(CanardHTTPDActivity.TAG, "Uri '" + uri + "' cannot be shared : " + e.getMessage());
+			Toast.makeText(activity, R.string.error_failed_to_share_this_file_type, Toast.LENGTH_LONG).show();
+			return false;
+		} catch (NotFoundFromUriException e) {
+			final String message = "Uri '" + uri + "' couldn't be found : " + e.getLocalizedMessage();
+			SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), message);
+			Log.e(CanardHTTPDActivity.TAG, message, e);
 			return false;
 		}
 	}

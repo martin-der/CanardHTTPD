@@ -1,12 +1,17 @@
 
-STR_loading_theme="Loading theme '{THEME}'...";
 
 jQuery(document).ready(function () {
-	
-	var pref_theme = $.cookie('theme');
-	
-	if ( pref_theme != undefined ) {
-		setTheme ( pref_theme );
+
+
+	var theme = $.cookie('theme');
+
+	if ( theme != undefined ) {
+		if (options.setThemeClientSide) {
+			setTheme ( theme );
+		}
+		// workaround stupidity of the server that can select the
+		// right theme option while generating the page
+		$("select#theme>option[value='"+theme+"']").prop('selected', true)
 	}
 
 	function setTheme ( theme) {
@@ -14,13 +19,13 @@ jQuery(document).ready(function () {
 		var resetCss = "<script id='reinit_css' type='text/css'> * { color : initial; }</script>";
 		$("html>head>script[id='reinit_css']").remove();
 
-		var commonCssLink = "<link id='common_css' rel='stylesheet' href='./RES/css/common.css' type='text/css'>";
+		var commonCssLink = "<link id='common_css' rel='stylesheet' href='/~/css/common.css' type='text/css'>";
 		$("html>head>link[id='common_css']").remove();
 
-		var newCssLink = "<link id='global_css' rel='stylesheet' href='./RES/theme/"+theme+"/main.css' type='text/css'>";
+		var newCssLink = "<link id='global_css' rel='stylesheet' href='/~/theme/"+theme+"/main.css' type='text/css'>";
 		$("html>head>link[id='global_css']").remove();
 
-		var mandatoryCssLink = "<link id='mandatory_css' rel='stylesheet' href='./RES/css/mandatory.css' type='text/css'>";
+		var mandatoryCssLink = "<link id='mandatory_css' rel='stylesheet' href='/~/css/mandatory.css' type='text/css'>";
 		$("html>head>link[id='mandatory_css']").remove();
 
 
@@ -28,11 +33,11 @@ jQuery(document).ready(function () {
 	}
 
 
-	jQuery('select#site_theme').on('change', function (e) {
+	jQuery('select#theme').on('change', function (e) {
 		var option = $('option:selected', this);
 		var theme = this.value;
 		
-		$.blockUI({ message: '<h1><img src="./RES/image/busy.gif" />'+STR_loading_theme+'</h1>' });
+		$.blockUI({ message: '<h1><img src="/~/image/busy.gif" />'+message.theme_loading+'</h1>' });
 		try {
 			setTheme ( theme );
 			$.cookie('theme', theme);

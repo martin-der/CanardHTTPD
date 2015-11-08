@@ -33,7 +33,6 @@ div.main-container {
 	border-width: 2px;
 	border-color: green;
 	border-style: solid;
-	padding: 8px;
 	margin-bottom: 10px;
 }
 div.sub-container {
@@ -47,7 +46,12 @@ div.sub-container {
 div.breadcrumb
 { 
 	text-align: center;
-} 
+}
+div.footer hr {
+	border: 0;
+    border-bottom: 1px dashed #008000;
+    background: rgba(0, 0, 0, 0);
+}
 
 table.shared-things { 
 	width : 100%;

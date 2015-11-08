@@ -1,18 +1,25 @@
 package net.tetrakoopa.canardhttpd.service.sharing;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.ContactsContract;
 
 import net.tetrakoopa.canardhttpd.domain.common.CommonSharedThing;
 import net.tetrakoopa.canardhttpd.domain.common.SharedCollection;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.domain.metafs.BreadCrumb;
+import net.tetrakoopa.canardhttpd.domain.sharing.SharedContact;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedDirectory;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedGroup;
+import net.tetrakoopa.canardhttpd.domain.sharing.SharedStream;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
 import net.tetrakoopa.canardhttpd.service.sharing.exception.AlreadySharedException;
 import net.tetrakoopa.canardhttpd.service.sharing.exception.BadShareTypeException;
-import net.tetrakoopa.canardhttpd.service.sharing.exception.IncorrectUrlException;
+import net.tetrakoopa.canardhttpd.service.sharing.exception.IncorrectUriException;
+import net.tetrakoopa.canardhttpd.service.sharing.exception.NotFoundFromUriException;
 import net.tetrakoopa.canardhttpd.service.sharing.exception.NotSharedException;
 
 import java.io.File;
@@ -23,7 +30,7 @@ import java.util.Set;
 
 public class SharesManager {
 
-	private final SharedGroup sharedGroup = new SharedGroup("ROOT");
+	private final SharedGroup sharedGroup = new SharedGroup(Uri.EMPTY, "ROOT");
 
 	private final Set<CommonSharedThing.Tag> tags = new HashSet<CommonSharedThing.Tag>();
 
@@ -35,17 +42,6 @@ public class SharesManager {
 		tags.add(ST_TAG_PUBLIC);
 	}
 
-	public synchronized void addText(String name, String text) {
-		if (name == null) {
-			name = "Some Text";
-			if (textIndexSequenceCounter > 0) {
-				name = name + " " + textIndexSequenceCounter;
-			}
-			textIndexSequenceCounter++;
-		}
-		addThing(new SharedText(name, text));
-	}
-
 	public synchronized SharedThing remove(int index) throws NotSharedException {
 		try {
 			return sharedGroup.getThings().remove(index);
@@ -54,11 +50,11 @@ public class SharesManager {
 		}
 	}
 
-	public synchronized SharedThing remove(SharedThing thing) throws NotSharedException {
+	public synchronized void remove(SharedThing thing) throws NotSharedException {
 		int index = sharedGroup.getThings().indexOf(thing);
 		if (index < 0)
 			throw new NotSharedException("No element {'" + thing.getName() + "', " + thing.getClass().getSimpleName() + "} was shared");
-		return remove(index);
+		remove(index);
 	}
 
 	public synchronized void removeFile(File file) throws NotSharedException {
@@ -69,13 +65,63 @@ public class SharesManager {
 		sharedGroup.getThings().remove(sharedFile);
 	}
 
-	public synchronized void addInode(File file, String mimeType)
-			throws AlreadySharedException, BadShareTypeException {
+	public synchronized SharedThing add(Context context, Uri uri) throws NotFoundFromUriException, BadShareTypeException, AlreadySharedException {
+		final ContentResolver contentResolver = context.getContentResolver();
+		final String type = contentResolver.getType(uri);
 
-		throw new BadShareTypeException("Don't know what to do with '" + file.getAbsolutePath() + "'");
+		if (type == null) {
+			throw new BadShareTypeException("Don't know this kind of object : '"+type+"'");
+		}
+
+		if (type.equals("vnd.android.cursor.item/contact")) {
+			return addContact(contentResolver, uri);
+		}
+		if (type.startsWith("image/")) {
+			return addImage(uri, type);
+		}
+		throw new BadShareTypeException("Don't know this kind of object : '"+type+"'");
+
 	}
 
-	public synchronized void addFile(File file, String mimeType) throws AlreadySharedException, BadShareTypeException {
+	public synchronized SharedText addText(String name, String text) {
+		if (name == null) {
+			name = "Some Text";
+			if (textIndexSequenceCounter > 0) {
+				name = name + " " + textIndexSequenceCounter;
+			}
+			textIndexSequenceCounter++;
+		}
+		return addThing(new SharedText(name, text));
+	}
+
+	private SharedContact addContact(ContentResolver contentResolver, Uri uri) throws NotFoundFromUriException {
+		final Cursor cursor = contentResolver.query(uri, null, null, null, null);
+		try {
+			if (cursor.moveToFirst()) {
+				String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+
+				String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+				return addContact(uri, name, id);
+			} else {
+				throw new NotFoundFromUriException(uri, "Contact");
+			}
+		} finally {
+			cursor.close();
+		}
+	}
+	public synchronized  SharedContact addContact(Uri uri, String name, String id) {
+		return addThing(new SharedContact(uri, name, id));
+	}
+
+	private SharedStream addImage(Uri uri, String mimeType) throws BadShareTypeException, AlreadySharedException {
+		return addStream(uri, mimeType);
+	}
+
+	private SharedStream addStream(Uri uri, String mimeType) throws BadShareTypeException, AlreadySharedException {
+		return addThing(new SharedStream(uri, mimeType, new File(uri.getPath()).getName()));
+	}
+
+	public synchronized SharedFile addFile(Uri uri, File file, String mimeType) throws AlreadySharedException, BadShareTypeException {
 
 		if (!file.isFile())
 			throw new BadShareTypeException("'" + file.getAbsolutePath() + "' is not a regular file");
@@ -83,23 +129,25 @@ public class SharesManager {
 		if (findFile(file) != null) {
 			throw new AlreadySharedException("File '" + file.getAbsolutePath() + "' is already shared");
 		}
-		addThing(new SharedFile(file.getName(), file, mimeType, null));
+		return addThing(new SharedFile(uri, file.getName(), mimeType, null));
 	}
 
-	public synchronized void addFolder(File file) throws AlreadySharedException, BadShareTypeException {
-		
+	public synchronized SharedDirectory addFolder(Uri uri) throws AlreadySharedException, BadShareTypeException {
+		final File file = new File(uri.getPath());
+
 		if (!file.isDirectory())
 			throw new BadShareTypeException("'" + file.getAbsolutePath() + "' is not a directory");
 
 		if (findFolder(file) != null) {
 			throw new AlreadySharedException("File '" + file.getAbsolutePath() + "' is already shared");
 		}
-		addThing(new SharedDirectory(file.getName(), file, true));
+		return addThing(new SharedDirectory(uri, file.getName(), true));
 	}
 
-	private synchronized void addThing(SharedThing thing) {
+	private synchronized <THING extends SharedThing> THING addThing(THING thing) {
 		thing.setShareDate(new Date());
 		sharedGroup.getThings().add(thing);
+		return thing;
 	}
 
 	public synchronized SharedFile findFile(File file) {
@@ -146,10 +194,10 @@ public class SharesManager {
 		return sharedGroup.getThings();
 	}
 	
-	public SharedThing findThingAndBuildBreadCrumb(String url, final BreadCrumb breadCrumb) throws IncorrectUrlException {
+	public SharedThing findThingAndBuildBreadCrumb(String url, final BreadCrumb breadCrumb) throws IncorrectUriException {
 		
 		if (!url.startsWith("/"))
-			throw new IncorrectUrlException("Urls start with '/'");
+			throw new IncorrectUriException("Urls start with '/'");
 		
 		url = url.substring(1,url.length());
 		
@@ -165,7 +213,7 @@ public class SharesManager {
 		for (String pathPart : pathParts) {
 			
 			if (parentSharedThing instanceof SharedCollection) 
-				throw new IncorrectUrlException("'"+breadCrumb.asPath()+"' is not a directory");
+				throw new IncorrectUriException("'"+breadCrumb.asPath()+"' is not a directory");
 			
 			final SharedCollection collection =(SharedCollection)parentSharedThing;
 			SharedThing match = null;
@@ -178,7 +226,7 @@ public class SharesManager {
 			}
 			
 			if (match == null) {
-				throw new IncorrectUrlException("No element '"+pathPart+" could be found in '"+breadCrumb.asPath()+"'");
+				throw new IncorrectUriException("No element '"+pathPart+" could be found in '"+breadCrumb.asPath()+"'");
 			}
 			
 			breadCrumbParts.add(new BreadCrumb.Part(match));

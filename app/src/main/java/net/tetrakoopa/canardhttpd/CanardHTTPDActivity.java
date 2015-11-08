@@ -24,7 +24,9 @@ import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
 import net.tetrakoopa.canardhttpd.view.action.MainAction;
 import net.tetrakoopa.mdu.android.util.ContractuelUtil;
 import net.tetrakoopa.mdu.android.util.ResourcesUtil;
+import net.tetrakoopa.mdu.android.util.SystemUtil;
 import net.tetrakoopa.mdu.android.view.util.SystemUIUtil;
+import net.tetrakoopa.mdu.util.FileUtil;
 
 import java.io.File;
 
@@ -48,7 +50,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	private CanardHTTPDService service;
 	private boolean serviceBound = false;
 
-	private File fileFromPickupActivityReturn;
+	private Uri uriFromPickupActivityReturn;
 
 	private Bundle savedInstanceState;
 
@@ -133,7 +135,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 			}
 			if (needToCheckPickupActivityReturn) {
 				needToCheckPickupActivityReturn = false;
-				if (ShareFeedUtil.tryToAddFileToSharesElseNotify(CanardHTTPDActivity.this, getService().getSharesManager(), fileFromPickupActivityReturn, null))
+				if (ShareFeedUtil.tryToAddFileToSharesElseNotify(CanardHTTPDActivity.this, getService().getSharesManager(), uriFromPickupActivityReturn))
 					mainAction.invalidateListe();
 			}
 		}
@@ -172,43 +174,36 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		return ResourcesUtil.getString(this, id);
 	}
 
-	private static final int REQUEST_CODE = 6384; // onActivityResult request code
+	private static final int FILE_SELECT_CODE = 6384;
 
 	public void showPicker() {
-		// Use the GET_CONTENT intent from the utility class
-		Intent target = null; //FileUtil.createGetContentIntent();
-		// Create the chooser Intent
-		Intent intent = Intent.createChooser(target, message(R.string.title_pick_file_to_share));
+		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+		// message(R.string.title_pick_file_to_share);
+		intent.setType("*/*");
 		try {
-			startActivityForResult(intent, REQUEST_CODE);
+			startActivityForResult(intent, FILE_SELECT_CODE);
 		} catch (ActivityNotFoundException e) {
-			SystemUIUtil.showOKDialog(this, "titre", "message");
-			// The reason for the existence of aFileChooser
+			SystemUIUtil.showOKDialog(this, "!!!!", message(R.string.no_activity_for_picking_file_or_directory));
 		}
 	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
-		case REQUEST_CODE:
-			// If the file selection was successful
-			if (resultCode == RESULT_OK) {
-				if (data != null) {
-					// Get the URI of the selected file
+		case FILE_SELECT_CODE:
+			if (resultCode == RESULT_OK && data != null) {
+				try {
 					final Uri uri = data.getData();
-
-					try {
-						final File file = null; //FileUtils.getFile(uri);
-						if (serviceBound) {
-							if (ShareFeedUtil.tryToAddFileToSharesElseNotify(this, getService().getSharesManager(), file, null))
-								mainAction.invalidateListe();
-						} else {
-							needToCheckPickupActivityReturn = true;
-							fileFromPickupActivityReturn = file;
+					if (serviceBound) {
+						if (ShareFeedUtil.tryToAddFileToSharesElseNotify(this, getService().getSharesManager(), uri)) {
+							mainAction.updateSharedThingsList();
 						}
-					} catch (Exception e) {
-						Log.e(TAG, "Error while tying to pickup a file", e);
+					} else {
+						needToCheckPickupActivityReturn = true;
+						uriFromPickupActivityReturn = uri;
 					}
+				} catch (Exception e) {
+					Log.e(TAG, "Error while tying to pickup a file", e);
 				}
 			}
 			break;

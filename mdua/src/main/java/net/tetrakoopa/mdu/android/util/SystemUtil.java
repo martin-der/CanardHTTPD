@@ -3,9 +3,12 @@ package net.tetrakoopa.mdu.android.util;
 import java.io.File;
 import java.util.Locale;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.webkit.MimeTypeMap;
 
 public class SystemUtil {
@@ -40,6 +43,10 @@ public class SystemUtil {
 		return mime.getMimeTypeFromExtension(extension);
 	}
 
+	public static String getMimeTypeFromFilename(String filename) {
+		final int p = filename.indexOf('.');
+		return p < 0 ? null : getMimeTypeFromExtension(filename.substring(p+1,filename.length()));
+	}
 	public static String getMimeTypeFromExtension(String extension) {
 		MimeTypeMap mime = MimeTypeMap.getSingleton();
 		return mime.getMimeTypeFromExtension(extension.toLowerCase(Locale.US));
@@ -47,6 +54,29 @@ public class SystemUtil {
 
 	public static void trySleeping(long time) {
 		try { Thread.sleep(time); } catch (InterruptedException e) {}
+	}
+
+
+	public static String getFileName(Activity activity, Uri uri) {
+		String result = null;
+		if (uri.getScheme().equals("content")) {
+			Cursor cursor = activity.getContentResolver().query(uri, null, null, null, null);
+			try {
+				if (cursor != null && cursor.moveToFirst()) {
+					result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+				}
+			} finally {
+				cursor.close();
+			}
+		}
+		if (result == null) {
+			result = uri.getPath();
+			int cut = result.lastIndexOf('/');
+			if (cut != -1) {
+				result = result.substring(cut + 1);
+			}
+		}
+		return result;
 	}
 
 }

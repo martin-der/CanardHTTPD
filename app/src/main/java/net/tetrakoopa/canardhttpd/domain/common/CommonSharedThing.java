@@ -1,10 +1,14 @@
 package net.tetrakoopa.canardhttpd.domain.common;
 
+import android.net.Uri;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 public abstract class CommonSharedThing implements SharedThing {
+
+	private final Uri uri;
 
 	private final String name;
 
@@ -20,7 +24,8 @@ public abstract class CommonSharedThing implements SharedThing {
 
 	private ShareStatus shareStatus;
 
-	public CommonSharedThing(String name) {
+	public CommonSharedThing(Uri uri, String name) {
+		this.uri = uri;
 		this.name = name;
 		this.shareStatus = ShareStatus.NOT_SHARED;
 	}
@@ -31,6 +36,10 @@ public abstract class CommonSharedThing implements SharedThing {
 
 	public void setUsersCount(int usersCount) {
 		this.usersCount = usersCount;
+	}
+
+	public Uri getUri() {
+		return uri;
 	}
 
 	public String getName() {

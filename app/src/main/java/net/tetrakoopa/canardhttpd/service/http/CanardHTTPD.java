@@ -23,8 +23,9 @@ import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.
 import net.tetrakoopa.canardhttpd.service.http.writer.template.PageWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.template.TemplateArg;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
-import net.tetrakoopa.canardhttpd.service.sharing.exception.IncorrectUrlException;
+import net.tetrakoopa.canardhttpd.service.sharing.exception.IncorrectUriException;
 import net.tetrakoopa.canardhttpd.util.TemporaryMimeTypeUtil;
+import net.tetrakoopa.canardhttpd.util.WebUtil;
 
 import org.apache.http.HttpRequest;
 import org.eclipse.jetty.server.Connector;
@@ -41,7 +42,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -237,14 +238,43 @@ public class CanardHTTPD extends Server {
 		final Map<String, String> headers = null; //request.getParameterMap();
 		final Map<String, String[]> params = request.getParameterMap();
 
-		final PageWriter pageWriter = new PageWriter(context) {
+		final String userAgent = request.getHeader("User-Agent");
+		final boolean isMobileUser = userAgent != null && WebUtil.isMobileUserAgent(userAgent);
+
+		final Cookie cookies[] = request.getCookies();
+		final String themeName;
+		String tmpThemeName =  "subtle";
+		if (cookies!=null) {
+			for (Cookie cookie : cookies) {
+				if (cookie.getName().equals("theme")) {
+					tmpThemeName = cookie.getValue();
+					break;
+				}
+			}
+		}
+		themeName = tmpThemeName;
+
+
+
+		final PageWriter pageWriter = new PageWriter(context, request) {
 			@Override
-			protected void writeHeader(Writer writer, TemplateArg arg) {
+			protected void writeThemeName(HttpServletRequest request, Writer destination, TemplateArg arg) {
+				writer.write(themeName);
+			}
+			@Override
+			protected void writeHead(HttpServletRequest request, Writer destination, TemplateArg arg) {
+				if (isMobileUser) {
+					writer.write("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\">\n");
+				}
+			}
+
+			@Override
+			protected void writeHeader(HttpServletRequest request, Writer destination, TemplateArg arg) {
 				writeAsset("www/template/piece/header.html", writer);
 			}
 
 			@Override
-			protected void writeContent(Writer destination, TemplateArg arg) {
+			protected void writeContent(HttpServletRequest request, Writer destination, TemplateArg arg) {
 				try {
 					if (!CanardHTTPD.this.writeContent(destination, uri)) {
 						Log.e(CanardHTTPDService.TAG, "Failed to write thing content (uri='" + uri + "')");
@@ -255,7 +285,7 @@ public class CanardHTTPD extends Server {
 			}
 
 			@Override
-			protected void writeFooter(Writer writer, TemplateArg arg) {
+			protected void writeFooter(HttpServletRequest request, Writer destination, TemplateArg arg) {
 				writeAsset("www/template/piece/footer.html", writer);
 			}
 		};
@@ -273,7 +303,7 @@ public class CanardHTTPD extends Server {
 		final SharedThing thing;
 		try {
 			thing = sharesManager.findThingAndBuildBreadCrumb(uri, breadCrumb);
-		} catch (IncorrectUrlException e) {
+		} catch (IncorrectUriException e) {
 			Log.d(CanardHTTPDService.TAG, "Could not find share at '" + uri + "' : " + e.getMessage());
 			return false;
 		}
@@ -305,6 +335,7 @@ public class CanardHTTPD extends Server {
 	
 	private void serveWWWStaticResource(HttpServletRequest request, HttpServletResponse response, String resource) throws IOException {
 		if (resource.startsWith("/") && resource.length() > 1) {
+			response.addHeader("Cache-Control","max-age=31536000");
 			String asset = resource.substring(1);
 			String mimeType = //SystemUtil.getMimeTypeFromExtension(asset);
 					TemporaryMimeTypeUtil.basicMimeTypeFromExtension(asset);
