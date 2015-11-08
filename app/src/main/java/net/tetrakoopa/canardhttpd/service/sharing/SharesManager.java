@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 
 import net.tetrakoopa.canardhttpd.domain.common.CommonSharedThing;
 import net.tetrakoopa.canardhttpd.domain.common.SharedCollection;
@@ -77,7 +79,7 @@ public class SharesManager {
 			return addContact(contentResolver, uri);
 		}
 		if (type.startsWith("image/")) {
-			return addImage(uri, type);
+			return addImage(contentResolver, uri, type);
 		}
 		throw new BadShareTypeException("Don't know this kind of object : '"+type+"'");
 
@@ -113,12 +115,13 @@ public class SharesManager {
 		return addThing(new SharedContact(uri, name, id));
 	}
 
-	private SharedStream addImage(Uri uri, String mimeType) throws BadShareTypeException, AlreadySharedException {
-		return addStream(uri, mimeType);
+	private SharedStream addImage(ContentResolver contentResolver, Uri uri, String mimeType) throws BadShareTypeException, AlreadySharedException {
+		return addStream(contentResolver, uri, mimeType);
 	}
 
-	private SharedStream addStream(Uri uri, String mimeType) throws BadShareTypeException, AlreadySharedException {
-		return addThing(new SharedStream(uri, mimeType, new File(uri.getPath()).getName()));
+	private SharedStream addStream(ContentResolver contentResolver, Uri uri, String mimeType) throws BadShareTypeException, AlreadySharedException {
+		final String path = getPath(contentResolver, uri);
+		return addThing(new SharedStream(uri, mimeType, path != null ? extractFilename(path) : uri.getPath()));
 	}
 
 	public synchronized SharedFile addFile(Uri uri, File file, String mimeType) throws AlreadySharedException, BadShareTypeException {
@@ -148,6 +151,33 @@ public class SharesManager {
 		thing.setShareDate(new Date());
 		sharedGroup.getThings().add(thing);
 		return thing;
+	}
+
+	private static String getPath(ContentResolver contentresolver, Uri uri) {
+		// Will return "image:x*"
+		final String wholeID = DocumentsContract.getDocumentId(uri);
+
+		// Split at colon, use second item in the array
+		final String id = wholeID.split(":")[1];
+
+		final String[] column = { MediaStore.Images.Media.DATA };
+
+		// where id is equal to
+		final String sel = MediaStore.Images.Media._ID + "=?";
+
+		final Cursor cursor = contentresolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+				column, sel, new String[]{id}, null);
+		try {
+
+			int columnIndex = cursor.getColumnIndex(column[0]);
+
+			if (cursor.moveToFirst()) {
+				return cursor.getString(columnIndex);
+			}
+			return null;
+		} finally {
+			cursor.close();
+		}
 	}
 
 	public synchronized SharedFile findFile(File file) {
@@ -238,5 +268,12 @@ public class SharesManager {
 		return parentSharedThing;
 	}
 
+	private static String extractFilename(String path) {
+		int p = path.lastIndexOf('/');
+		if (p<0) {
+			return path;
+		}
+		return path.substring(p+1);
+	}
 
 }
