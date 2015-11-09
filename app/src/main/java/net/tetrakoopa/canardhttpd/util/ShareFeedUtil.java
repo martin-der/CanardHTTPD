@@ -106,7 +106,9 @@ public class ShareFeedUtil {
 		if (sharesManager.getThings().isEmpty()) {
 			int i = 1;
 			for (; i > 0; i--) {
-				sharesManager.addText("Some thoughts I had...", "qsdqsdd sf sd fdg !");
+				sharesManager.addText("Some thoughts I had...", "The phenomenology movement in philosophy saw a radical change in the way in which we understand thought. Martin Heidegger's phenomenological analyses of the existential structure of man in Being and Time cast new light on the issue of thinking, unsettling traditional cognitive or rational interpretations of man which affect the way we understand thought. The notion of the fundamental role of non-cognitive understanding in rendering possible thematic consciousness informed the discussion surrounding Artificial Intelligence during the 1970s and 1980s.[12]\n" +
+						"\n" +
+						"Phenomenology, however, is not the only approach to thinking in modern Western philosophy. Philosophy of mind is a branch of philosophy that studies the nature of the mind, mental events, mental functions, mental properties, consciousness and their relationship to the physical body, particularly the brain. The mind-body problem, i.e. the relationship of the mind to the body, is commonly seen as the central issue in philosophy of mind, although there are other issues concerning the nature of the mind that do not involve its relation to the physical body.[13]");
 				sharesManager.addText(null, "Lalalalalalalalolololilili");
 				String if_kipplig = 
 				"IF you can keep your head when all about you\n" 
@@ -144,7 +146,25 @@ public class ShareFeedUtil {
 				+"Yours is the Earth and everything that's in it,\n"
 				+"And - which is more - you'll be a Man, my son!\n";
 				sharesManager.addText("IF - Kippling", if_kipplig);
-				sharesManager.addText(null, "aze qsdai vlqskdjf sdf");
+				sharesManager.addText("Karl Ernst von Baer", "Ses ancêtres venaient de Westphalie. Il fait ses études à Revel et à l'université de Dorpat, ainsi qu'à Berlin, Vienne et Wurtzbourg.\n" +
+						"\n" +
+						"En 1817, il devient professeur assistant à l'université de Königsberg, professeur de zoologie en 1821, puis d'anatomie en 1826.\n" +
+						"\n" +
+						"En 1829, il s'installe brièvement à Saint-Pétersbourg avant de revenir à Königsberg. En 1834, il s'établit à Saint-Pétersbourg et rejoint l'Académie des sciences, d'abord en zoologie (de 1834 à 1846) puis en physiologie (de 1846 à 1862). Il dirige le 2e département de la Bibliothèque de l'Académie des sciences de Russie de 1835 à 1862.\n" +
+						"\n" +
+						"Il s'intéresse à de nombreux sujets comme l'anatomie, l'ichtyologie, l'ethnologie, l'anthropologie et la géographie. C'est le cofondateur et le premier président de la Société entomologique de Russie.\n" +
+						"\n" +
+						"Il passe la fin de sa vie à Dorpat où il est l'un des critiques les plus virulents des théories darwiniennes.\n" +
+						"\n" +
+						"Il étudie particulièrement le développement embryonnaires des animaux, découvrant les différents stades de la blastula et de la notochorde. Poursuivant les travaux de Caspar Friedrich Wolff (1734-1794), il décrit avec Christian Heinrich von Pander (1794-1865) le développement de l'embryon à partir de feuillets (ou couches) embryonnaires. Il est à l'origine de la loi de von Baer spécifiant que les caractères embryonnaires qui sont communs à plusieurs taxons animaux apparaissent plus précocement que les caractères distinctifs de ces taxons3.\n" +
+						"\n" +
+						"Son livre, Über Entwicklungsgeschichte der Tiere, publié en 1828, marque la fondation de l’embryologie comparée.\n" +
+						"\n" +
+						"Il est également l'auteur en géologie de la loi de Baer.\n" +
+						"\n" +
+						"Il est lauréat de la Médaille Copley en 1867. Karl Ernst von Baer est devenu membre étranger de la Royal Society le 15 juin 1854.\n" +
+						"\n" +
+						"C'est son portrait qui est représenté sur les billets de 2 couronnes estoniennes du début des années 1990. Parmi ses étudiants, l'on peut distinguer Adolph Grube.");
 				sharesManager.addText(null, "iazppco qspdfpozeoropbpowfobdg");
 			}
 		}

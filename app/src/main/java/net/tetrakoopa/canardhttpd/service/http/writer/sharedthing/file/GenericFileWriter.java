@@ -12,8 +12,8 @@ import java.util.Map;
 
 public class GenericFileWriter extends FileWriter {
 
-	public GenericFileWriter(Context context) {
-		super(context);
+	public GenericFileWriter(Context context, String httpContext) {
+		super(context, httpContext);
 	}
 
 	@Override

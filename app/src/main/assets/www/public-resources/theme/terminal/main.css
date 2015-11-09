@@ -21,6 +21,12 @@ body {
 	color : green;
 }
 
+hr {
+	border: 0;
+    border-bottom: 1px dashed #008000;
+    background: rgba(0, 0, 0, 0);
+}
+
 div.header h1 {
 	color: green;
 	font-size : 2.8em;
@@ -46,11 +52,6 @@ div.sub-container {
 div.breadcrumb
 { 
 	text-align: center;
-}
-div.footer hr {
-	border: 0;
-    border-bottom: 1px dashed #008000;
-    background: rgba(0, 0, 0, 0);
 }
 
 table.shared-things { 

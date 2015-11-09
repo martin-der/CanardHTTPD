@@ -7,8 +7,8 @@ import net.tetrakoopa.canardhttpd.domain.sharing.SharedDirectory;
 
 public class DirectoryWriter extends CollectionWriter<SharedDirectory> implements SharedThingWriter<SharedDirectory> {
 
-	public DirectoryWriter(Context context) {
-		super(context);
+	public DirectoryWriter(Context context, String httpContext) {
+		super(context, httpContext);
 	}
 
 	protected SharedCollection getSharedCollection() {

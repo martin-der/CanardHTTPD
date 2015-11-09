@@ -10,24 +10,10 @@ import java.io.InputStream;
 import java.io.PrintStream;
 
 
-public abstract class BaseWriter {
+public abstract class BaseWriter extends CommonHTMLComponent {
 
-	public final static String DEFAULT_ENCODING = "UTF-8";
-	public final static String DEFAULT_PAGE_ENCODING = DEFAULT_ENCODING;
-	private final static String DEFAULT_ASSET_ENCODING = DEFAULT_ENCODING;
-
-	protected final Context context;
-
-	protected BaseWriter(Context context) {
-		this.context = context;
-	}
-
-	public final static String escapedXmlContent(String string) {
-		return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
-	}
-
-	public final static String escapedXmlAttribut(String string) {
-		return string.replace("\"", "\\\"");
+	protected BaseWriter(Context context, String httpContext) {
+		super(context, httpContext);
 	}
 
 	protected void writeAsset(String assetName, PrintStream stream) {

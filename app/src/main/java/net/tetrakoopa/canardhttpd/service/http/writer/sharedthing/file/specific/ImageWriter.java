@@ -11,8 +11,8 @@ import java.util.Map;
 
 public class ImageWriter extends SpecificFileWriter {
 
-	public ImageWriter(Context context) {
-		super(context);
+	public ImageWriter(Context context, String httpContext) {
+		super(context, httpContext);
 	}
 
 	@Override

@@ -12,13 +12,13 @@ import java.util.Map;
 public class TextWriter extends AbstractSharedThingWriter<SharedText> implements SharedThingWriter<SharedText> {
 
 
-	public TextWriter(Context context) {
-		super(context);
+	public TextWriter(Context context, String httpContext) {
+		super(context, httpContext);
 	}
 
 	@Override
 	public void writeThing(Writer writer, String uri, SharedText sharedText) throws IOException {
-		writer.append("<pre style=\"word-wrap: break-word; white-space: pre-wrap;\">" + escapedXmlContent(sharedText.getText()) + "</pre>");
+		writer.append("<div style=\"word-wrap: break-word; white-space: pre-wrap;\">" + escapedXmlAlsoSpaceAndCR(sharedText.getText()) + "</div>");
 	}
 
 

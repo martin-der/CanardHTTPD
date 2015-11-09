@@ -10,8 +10,8 @@ import java.util.List;
 
 public abstract class SpecificFileWriter extends FileWriter {
 
-	protected SpecificFileWriter(Context context) {
-		super(context);
+	protected SpecificFileWriter(Context context, String httpContext) {
+		super(context, httpContext);
 	}
 
 	public enum HandleAffinity {

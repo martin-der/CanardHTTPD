@@ -7,14 +7,12 @@ import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Writer;
-import java.util.Map;
 
 public abstract class CollectionWriter<C extends SharedCollection> extends AbstractSharedThingWriter<C> {
 
-	protected CollectionWriter(Context context) {
-		super(context);
+	protected CollectionWriter(Context context, String httpContext) {
+		super(context, httpContext);
 	}
 
 	@Override
@@ -31,9 +29,9 @@ public abstract class CollectionWriter<C extends SharedCollection> extends Abstr
 		for (SharedThing thing : collection.getThings()) {
 			writer.append("\t<tr class=\"" + (index % 2 == 0 ? "even" : "odd") + "-row\">");
 			writer.append("<td></td>");
-			writer.append("<td><a href=\"/" + CommonHTMLComponent.escapedXmlAttribut(thing.getName()) + "?v=h" + "\">" + CommonHTMLComponent.escapedXmlContent(thing.getName()) + "</a></td>");
-			writer.append("<td>" + (thing.getComment() != null ? CommonHTMLComponent.escapedXmlContent(thing.getComment()) : "") + "</td>");
-			writer.append("<td><a href=\"/" + CommonHTMLComponent.escapedXmlAttribut(thing.getName()) + "\">" + "&#160;[V]" + "</a></td>");
+			writer.append("<td><a href=\""+httpContext+"/" + CommonHTMLComponent.escapedXml(thing.getName()) + "?v=h" + "\">" + CommonHTMLComponent.escapedXmlAlsoSpace(thing.getName()) + "</a></td>");
+			writer.append("<td>" + (thing.getComment() != null ? CommonHTMLComponent.escapedXml(thing.getComment()) : "") + "</td>");
+			writer.append("<td><a href=\""+httpContext+"/" + CommonHTMLComponent.escapedXml(thing.getName()) + "\">" + "&#160;[V]" + "</a></td>");
 			writer.append("</tr>\n");
 			index++;
 		}

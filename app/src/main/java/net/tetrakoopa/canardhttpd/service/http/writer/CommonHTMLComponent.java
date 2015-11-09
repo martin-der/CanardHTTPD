@@ -16,24 +16,28 @@ import java.io.Writer;
 
 public abstract class CommonHTMLComponent {
 
-	private final Context context;
+	protected final Context context;
+
+	protected final String httpContext;
 
 	protected final static String TAG = CanardHTTPDActivity.TAG;
 
 	public final static String DEFAULT_ENCODING = "UTF-8";
-	public final static String DEFAULT_PAGE_ENCODING = DEFAULT_ENCODING;
-	private final static String DEFAULT_ASSET_ENCODING = DEFAULT_ENCODING;
 
-	protected CommonHTMLComponent(Context context) {
+	protected CommonHTMLComponent(Context context, String httpContext) {
 		this.context = context;
+		this.httpContext = httpContext;
 	}
 
-	public final static String escapedXmlContent(String string) {
+	public final static String escapedXmlAlsoSpace(String string) {
+		return escapedXml(string).replace(" ", "&#160;");
+	}
+	public final static String escapedXmlAlsoSpaceAndCR(String string) {
+		return escapedXml(string).replace(" ", "&#160;").replace("\n","<br/>");
+	}
+
+	public final static String escapedXml(String string) {
 		return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
-	}
-
-	public final static String escapedXmlAttribut(String string) {
-		return string.replace("\"", "\\\"");
 	}
 
 	protected void writeAsset(String assetName, Writer writer) {

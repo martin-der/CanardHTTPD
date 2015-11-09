@@ -11,8 +11,8 @@ import java.util.Map;
 
 public class VCardWriter extends SpecificFileWriter {
 
-	public VCardWriter(Context context) {
-		super(context);
+	public VCardWriter(Context context, String httpContext) {
+		super(context, httpContext);
 	}
 
 	@Override

@@ -16,8 +16,8 @@ import java.util.Map;
 
 public abstract class FileWriter extends AbstractSharedThingWriter<SharedFile> implements SharedThingWriter<SharedFile> {
 
-	protected FileWriter(Context context) {
-		super(context);
+	protected FileWriter(Context context, String httpContext) {
+		super(context, httpContext);
 	}
 
 	public final void writeRaw(OutputStream stream, SharedFile sharedFile, PageWriter.Method method, Map<String, String[]> headers, Map<String, String[]> parms) throws IOException {

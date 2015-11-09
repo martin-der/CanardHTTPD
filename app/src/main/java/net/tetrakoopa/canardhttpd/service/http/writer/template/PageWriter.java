@@ -16,7 +16,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-public abstract class PageWriter extends CommonHTMLComponent {
+public abstract class PageWriter extends AbstractContentWriter {
 
 	public enum Method {
 		GET, POST;
@@ -32,8 +32,6 @@ public abstract class PageWriter extends CommonHTMLComponent {
 	   }
 
 	}
-
-	private final static String TITLE = "Canard HTTPD";
 
 //	private final FastEnclosedTextConverter<Map<String, Object>> templatedHtmlWriter = new FastEnclosedTextConverter<Map<String, Object>>();
 //	private final FastEnclosedTextConverter.ConverterTools<Map<String, Object>> tools = new FastEnclosedTextConverter.ConverterTools<Map<String, Object>>() {
@@ -60,8 +58,8 @@ public abstract class PageWriter extends CommonHTMLComponent {
 
 	private final Map<String, ReplacerTool> writerContext = new HashMap<>();
 
-	protected PageWriter(Context context, final HttpServletRequest request) {
-		super(context);
+	protected PageWriter(Context context, String httpContext, final HttpServletRequest request) {
+		super(context, httpContext);
 
 
 		writerContext.put("static-resources.url", new SimpleStringReplacerTool("/~"));
@@ -97,7 +95,7 @@ public abstract class PageWriter extends CommonHTMLComponent {
 		});
 	}
 
-	private static final EnclosedTextConverter.ConverterTools<Map<String, ReplacerTool>> barberTools = new EnclosedTextConverter.ConverterTools<Map<String, ReplacerTool>>() {
+	private static final EnclosedTextConverter.ConverterTools<Map<String, ReplacerTool>> converterTools = new EnclosedTextConverter.ConverterTools<Map<String, ReplacerTool>>() {
 
 		@Override
 		public void convert(Map<String, ReplacerTool> stringReplacerToolMap, String key, Writer destination, int extraMustaches) throws IOException {
@@ -132,36 +130,8 @@ public abstract class PageWriter extends CommonHTMLComponent {
 
 		final Reader reader = new InputStreamReader(getAsset("www/template/layout/classic_HeaderFooter_Vertical.html"), "UTF-8");
 
-		replacer.process(reader, writer, writerContext, barberTools);
+		replacer.process(reader, writer, writerContext, converterTools);
 
 	}
-
-	protected String titleMeta(String title) {
-		return "<title>" + CommonHTMLComponent.escapedXmlContent((title == null ? TITLE : (title + " - " + TITLE))) + "</title></head>";
-	}
-
-	/*
-
-			stream.print("\n<div class=\"breadcrumb sub-container\">\n");
-
-		stream.print("<span class=\"breadcrumb\">");
-		StringBuffer path = new StringBuffer();
-		stream.print("/<a href=\"/\">"+rootName+"</a>");
-		if (breadCrumb != null) {
-			for (BreadCrumb.Part part : breadCrumb.getParts()) {
-				path.append('/');
-				path.append(part.getLabel());
-				stream.print("/<a href=\""+path+"\">"+part.getLabel()+"</a>");
-			}
-		}
-		stream.print("</span>\n");
-
-		stream.print("</div>\n\n");
-
-		stream.print("\n<div class=\"sub-container\">");
-		writeContent(stream);
-		stream.print("</div>\n\n");
-
-	 */
 
 }

@@ -55,6 +55,8 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	private Button activityButton;
 
 	private ImageButton addShareButton;
+	private ImageButton addShareGroupButton;
+
 
 	private ListView sharedFilesList;
 	private SharedThingAdapter sharedThingAdapter;
@@ -143,6 +145,14 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		addShareButton = (ImageButton) parentView.findViewById(R.id.action_add_share);
 		addShareButton.setOnClickListener(new OnClickListener() {
 
+			@Override
+			public void onClick(View button) {
+				MainAction.this.activity().showPicker();
+			}
+		});
+
+		addShareGroupButton = (ImageButton) parentView.findViewById(R.id.action_add_share_group);
+		addShareGroupButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View button) {
 				MainAction.this.activity().showPicker();

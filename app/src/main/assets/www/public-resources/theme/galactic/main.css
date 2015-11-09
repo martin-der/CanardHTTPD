@@ -352,6 +352,11 @@ body {
 	-webkit-animation : background-scroll 220s linear infinite;
 }
 
+hr {
+	border: 0;
+	height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgb(161, 255, 251), rgba(0, 0, 0, 0));
+}
 
 
 div.main-container 

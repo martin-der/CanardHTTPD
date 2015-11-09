@@ -11,8 +11,8 @@ import java.io.Writer;
 
 public abstract class AbstractSharedThingWriter<THING extends SharedThing> extends BaseWriter implements SharedThingWriter<THING> {
 
-	protected AbstractSharedThingWriter(Context context) {
-		super(context);
+	protected AbstractSharedThingWriter(Context context, String httpContext) {
+		super(context, httpContext);
 	}
 
 	@Override
@@ -27,6 +27,7 @@ public abstract class AbstractSharedThingWriter<THING extends SharedThing> exten
 			writer.append(dateFormat.format(sharedThing.getShareDate()));
 		}
 		writer.append("</div>");
+		writer.append("<hr/>");
 
 		writer.append("<div class=\"detail\">");
 		writeThing(writer, uri, sharedThing);

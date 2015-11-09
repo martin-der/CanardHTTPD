@@ -19,6 +19,12 @@ body {
 	color : rgb(134, 206, 206);
 }
 
+hr {
+	border: 0;
+	height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), yellow, rgba(0, 0, 0, 0));
+}
+
 div.main-container {
 	background-color: rgb(0, 77, 0);
 	border-radius: 5px;

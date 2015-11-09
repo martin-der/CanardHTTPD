@@ -5,14 +5,15 @@ import android.util.Log;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDActivity;
 import net.tetrakoopa.canardhttpd.CanardHTTPDService;
+import net.tetrakoopa.canardhttpd.R;
 import net.tetrakoopa.canardhttpd.domain.common.SharedCollection;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
-import net.tetrakoopa.canardhttpd.domain.metafs.BreadCrumb;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedDirectory;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedGroup;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
 import net.tetrakoopa.canardhttpd.service.CanardLogger;
+import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.DirectoryWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.GroupWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.TextWriter;
@@ -20,10 +21,10 @@ import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.GenericFi
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.ImageWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.SpecificFileWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.VCardWriter;
+import net.tetrakoopa.canardhttpd.service.http.writer.template.ContentWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.template.PageWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.template.TemplateArg;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
-import net.tetrakoopa.canardhttpd.service.sharing.exception.IncorrectUriException;
 import net.tetrakoopa.canardhttpd.util.TemporaryMimeTypeUtil;
 import net.tetrakoopa.canardhttpd.util.WebUtil;
 
@@ -65,34 +66,42 @@ public class CanardHTTPD extends Server {
 	private final Context context;
 	private final SharesManager sharesManager;
 
-	private final TextWriter textWriter;
-	private final GroupWriter groupWriter;
-	private final DirectoryWriter directoryWriter;
-	private final GenericFileWriter genericFileWriter;
+	private TextWriter textWriter;
+	private GroupWriter groupWriter;
+	private DirectoryWriter directoryWriter;
+	private GenericFileWriter genericFileWriter;
 
-	private String encoding = "UTF-8";
+	private String encoding = CommonHTMLComponent.DEFAULT_ENCODING;
 	
 	private static final int MAX_IDLE_TIME = 30000;
 
 
 	private final Map<HttpRequest, SharedThing> downloads = new HashMap<HttpRequest, SharedThing>();
 
+	private final String title;
+
+
 
 	public CanardHTTPD(Context context, SharesManager sharesManager, String hostname, int port, int sercurePort, String keyStorePath, String keyStorePassord) {
 		this.sharesManager = sharesManager;
 		this.context = context;
 
-		this.directoryWriter = new DirectoryWriter(context);
-		this.groupWriter = new GroupWriter(context);
-		this.textWriter = new TextWriter(context);
-		this.genericFileWriter = new GenericFileWriter(context);
 
-
-		this.typeMimeWriters.add(new VCardWriter(context));
-		this.typeMimeWriters.add(new ImageWriter(context));
-
+		this.title = context.getString(R.string.app_name);
 
 		init_Jetty_v8(port, sercurePort, keyStorePath, keyStorePassord);
+	}
+
+	private void makeWriters(String httpContext) {
+		this.directoryWriter = new DirectoryWriter(context, httpContext);
+		this.groupWriter = new GroupWriter(context, httpContext);
+		this.textWriter = new TextWriter(context, httpContext);
+		this.genericFileWriter = new GenericFileWriter(context, httpContext);
+
+
+		this.typeMimeWriters.add(new VCardWriter(context, httpContext));
+		this.typeMimeWriters.add(new ImageWriter(context, httpContext));
+
 	}
 
 	private void init_Jetty_v8(int port, int sercurePort, String keyStorePath, String keyStorePassord) {
@@ -137,6 +146,10 @@ public class CanardHTTPD extends Server {
 	{
 		@Override
 		public void handle(String arg0, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+			if (textWriter == null) {
+				final String contextPath = request.getContextPath();
+				makeWriters(contextPath != null ? contextPath: "");
+			}
 			CanardLogger.i("Request from '" + request.getRemoteAddr() + "' for '" + request.getRequestURI() + "'");
 			final long begin = System.nanoTime();
 			try {
@@ -224,6 +237,8 @@ public class CanardHTTPD extends Server {
 	}
 
 	private boolean serveThing(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+		final String contextPath = request.getContextPath() == null ? "" : request.getContextPath();
+
 		final String uri = request.getRequestURI();
 		final PrintWriter writer = new PrintWriter(response.getOutputStream());
 		// response.get
@@ -254,9 +269,15 @@ public class CanardHTTPD extends Server {
 		}
 		themeName = tmpThemeName;
 
+		final ContentWriter contentWriter = new ContentWriter(context, contextPath) {
 
+			@Override
+			protected void writeThing(Writer destination, SharedThing thing) throws IOException {
+				CanardHTTPD.this.writeThing(destination, thing, uri);
+			}
+		};
 
-		final PageWriter pageWriter = new PageWriter(context, request) {
+		final PageWriter pageWriter = new PageWriter(context, contextPath, request) {
 			@Override
 			protected void writeThemeName(HttpServletRequest request, Writer destination, TemplateArg arg) {
 				writer.write(themeName);
@@ -265,6 +286,8 @@ public class CanardHTTPD extends Server {
 			protected void writeHead(HttpServletRequest request, Writer destination, TemplateArg arg) {
 				if (isMobileUser) {
 					writer.write("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\">\n");
+					final String title = uri;
+					writer.write("<title>" + escapedXml((title == null ? CanardHTTPD.this.title : (title + " - " + CanardHTTPD.this.title))) + "</title></head>");
 				}
 			}
 
@@ -276,7 +299,7 @@ public class CanardHTTPD extends Server {
 			@Override
 			protected void writeContent(HttpServletRequest request, Writer destination, TemplateArg arg) {
 				try {
-					if (!CanardHTTPD.this.writeContent(destination, uri)) {
+					if (!contentWriter.write(destination, sharesManager, uri)) {
 						Log.e(CanardHTTPDService.TAG, "Failed to write thing content (uri='" + uri + "')");
 					};
 				} catch (IOException ioex) {
@@ -297,26 +320,17 @@ public class CanardHTTPD extends Server {
 		return false;
 	}
 
-	private boolean writeContent(Writer writer, String uri) throws IOException {
-
-		final BreadCrumb breadCrumb = new BreadCrumb();
-		final SharedThing thing;
-		try {
-			thing = sharesManager.findThingAndBuildBreadCrumb(uri, breadCrumb);
-		} catch (IncorrectUriException e) {
-			Log.d(CanardHTTPDService.TAG, "Could not find share at '" + uri + "' : " + e.getMessage());
-			return false;
-		}
+	private boolean writeThing(Writer writer, SharedThing thing, String url) throws IOException {
 
 		if (thing instanceof SharedCollection) {
 			SharedCollection collection = (SharedCollection)thing;
 			if (collection instanceof SharedGroup) {
-				groupWriter.write(writer, uri, (SharedGroup) collection);
+				groupWriter.write(writer, url, (SharedGroup) collection);
 			} else {
-				directoryWriter.write(writer, uri, (SharedDirectory) collection);
+				directoryWriter.write(writer, url, (SharedDirectory) collection);
 			}
 		} else if (thing instanceof SharedText) {
-			textWriter.write(writer, uri, (SharedText) thing);
+			textWriter.write(writer, url, (SharedText) thing);
 		} else if (thing instanceof SharedFile) {
 			final SharedFile sharedFile = (SharedFile)thing;
 			SpecificFileWriter specificWriter = null;
@@ -324,15 +338,15 @@ public class CanardHTTPD extends Server {
 				specificWriter = SpecificFileWriter.getBestHandler(sharedFile.getMimeType(), typeMimeWriters);
 			}
 			if (specificWriter != null) {
-				specificWriter.write(writer, uri, sharedFile);
+				specificWriter.write(writer, url, sharedFile);
 			} else {
 				Log.w(CanardHTTPDActivity.TAG, "No handler found for file with mime '" + sharedFile.getMimeType() + "'");
-				genericFileWriter.write(writer, uri, sharedFile);
+				genericFileWriter.write(writer, url, sharedFile);
 			}
 		}
 		return true;
 	}
-	
+
 	private void serveWWWStaticResource(HttpServletRequest request, HttpServletResponse response, String resource) throws IOException {
 		if (resource.startsWith("/") && resource.length() > 1) {
 			response.addHeader("Cache-Control","max-age=31536000");

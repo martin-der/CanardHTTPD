@@ -25,6 +25,7 @@ import net.tetrakoopa.canardhttpd.service.sharing.exception.NotFoundFromUriExcep
 import net.tetrakoopa.canardhttpd.service.sharing.exception.NotSharedException;
 
 import java.io.File;
+import java.net.URLDecoder;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -234,38 +235,49 @@ public class SharesManager {
 		if ("".equals(url)) {
 			return sharedGroup;
 		}
-		
-		SharedThing parentSharedThing = sharedGroup;
+
+		SharedCollection parentThing = sharedGroup;
 		
 		final String pathParts [] = url.split("/");
 		final List<BreadCrumb.Part> breadCrumbParts = breadCrumb.getParts();
-		
-		for (String pathPart : pathParts) {
-			
-			if (parentSharedThing instanceof SharedCollection) 
-				throw new IncorrectUriException("'"+breadCrumb.asPath()+"' is not a directory");
-			
-			final SharedCollection collection =(SharedCollection)parentSharedThing;
-			SharedThing match = null;
-			
+		SharedThing currentThing = parentThing;
+
+		for (String rawPathPart : pathParts) {
+
+			final String pathPart = URLDecoder.decode(rawPathPart);
+
+			final boolean isLastElement = (rawPathPart == pathParts[pathParts.length-1]);
+
+
+
+			final SharedCollection collection = parentThing;
+			currentThing = null;
+
 			for (SharedThing possibleMatch : collection.getThings()) {
-				if (pathPart.equals(possibleMatch.getName())) {
-					match = possibleMatch;
+				final String possibleMatchName = possibleMatch.getName();
+				if (pathPart.equals(possibleMatchName)) {
+					currentThing = possibleMatch;
 					break;
 				}
 			}
-			
-			if (match == null) {
-				throw new IncorrectUriException("No element '"+pathPart+" could be found in '"+breadCrumb.asPath()+"'");
-			}
-			
-			breadCrumbParts.add(new BreadCrumb.Part(match));
 
-			parentSharedThing = match;
-			
+			if (currentThing == null) {
+				throw new IncorrectUriException("No element '" + pathPart + " could be found in '" + breadCrumb.asPath() + "'");
+			}
+
+			breadCrumbParts.add(new BreadCrumb.Part(currentThing));
+
+			if (!isLastElement) {
+				if (currentThing instanceof SharedCollection) {
+					parentThing = (SharedCollection)currentThing;
+				} else {
+					throw new IllegalStateException("'" + breadCrumb.asPath() + "' is not a directory");
+				}
+			}
 		}
-		
-		return parentSharedThing;
+
+
+		return currentThing;
 	}
 
 	private static String extractFilename(String path) {
