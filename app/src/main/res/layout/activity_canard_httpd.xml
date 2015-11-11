@@ -124,8 +124,8 @@
 	            android:textAppearance="?android:attr/textAppearanceLarge" />
 
 			<ImageButton
+                android:id="@+id/action_add_share_group"
 				style="?android:attr/buttonStyleSmall"
-				android:id="@+id/action_add_share_group"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:contentDescription="@string/add_collection_share"
@@ -138,18 +138,18 @@
 	            android:layout_height="wrap_content"
 	            android:contentDescription="@string/add_share"
 	            android:src="@android:drawable/ic_input_add" />
-	    </LinearLayout>
 
-		<ListView
-		    android:id="@+id/shared_files"
-		    android:layout_width="match_parent"
-		    android:layout_height="fill_parent"
-		    android:clickable="true"
-		    android:fadingEdgeLength="5dp" >
+        </LinearLayout>
 
-	    </ListView>
+    </LinearLayout>
 
-	</LinearLayout>
+    <ListView
+        android:id="@+id/shared_files"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:fadingEdgeLength="5dp" >
+    </ListView>
 
 
 </LinearLayout>
