@@ -1,49 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/main_padding">
 
-    <TabHost
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/tabHost">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <TabWidget
-                android:id="@+id/tabs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:transitionGroup="false"></TabWidget>
-
-            <FrameLayout
-                android:id="@android:id/tabcontent"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <LinearLayout
-                    android:id="@+id/tab_connections"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
+                     <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:text="@string/title_listen_interface"
-                        android:id="@+id/textView"
+                        android:text="@string/title_share_IP"
+                        android:id="@+id/textView_Share"
                         android:layout_gravity="center_horizontal"
-                        android:gravity="center_horizontal" />
+                        android:gravity="center_horizontal"
+                         android:layout_alignParentTop="true"
+                         android:layout_alignRight="@+id/radioGroup"
+                         android:layout_alignEnd="@+id/radioGroup"
+                         android:layout_alignLeft="@+id/radioGroup"
+                         android:layout_alignStart="@+id/radioGroup" />
 
-                    <RadioGroup
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/radioGroup"
+        android:layout_gravity="right"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true">
+
+        <RadioButton
+            android:layout_width="166dp"
+            android:layout_height="wrap_content"
+            android:text="Wifi"
+            android:id="@+id/radioButton5"
+            android:checked="false" />
+
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bluetooth"
+            android:id="@+id/radioButton6"
+            android:checked="false" />
+
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="USB"
+            android:id="@+id/radioButton7"
+            android:checked="false" />
+
+    </RadioGroup>
+
+    <RadioGroup
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/radioGroup" >
+                        android:id="@+id/radioGroup_IF"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/textView_Share">
 
                         <RadioButton
                             android:layout_width="match_parent"
@@ -52,7 +67,7 @@
                             android:id="@+id/radioButton2"
                             android:checked="false" />
 
-                        <RadioButton
+        <RadioButton
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Bluetooth"
@@ -66,7 +81,7 @@
                             android:id="@+id/radioButton"
                             android:checked="false" />
 
-                        <RadioButton
+        <RadioButton
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="All"
@@ -74,67 +89,32 @@
                             android:checked="true" />
                     </RadioGroup>
 
-                    <TextView
-                        android:layout_width="match_parent"
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="External IP"
+        android:id="@+id/checkBox"
+        android:checked="false"
+        android:layout_gravity="right"
+        android:layout_below="@+id/radioGroup"
+        android:layout_alignLeft="@+id/radioGroup"
+        android:layout_alignStart="@+id/radioGroup"
+        android:layout_alignRight="@+id/radioGroup"
+        android:layout_alignEnd="@+id/radioGroup" />
+
+    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:text="@string/title_share_IP"
-                        android:id="@+id/textView"
+        android:id="@+id/textView"
                         android:layout_gravity="center_horizontal"
-                        android:gravity="center_horizontal" />
-
-                    <RadioGroup
-                        android:layout_width="382dp"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/radioGroup" >
-
-                        <RadioButton
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Wifi"
-                            android:id="@+id/radioButton5"
-                            android:checked="false" />
-
-                        <RadioButton
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Bluetooth"
-                            android:id="@+id/radioButton6"
-                            android:checked="false" />
-
-                        <RadioButton
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="USB"
-                            android:id="@+id/radioButton7"
-                            android:checked="false" />
-
-                        <CheckBox
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="External IP"
-                            android:id="@+id/checkBox"
-                            android:checked="false" />
-                    </RadioGroup>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/tab_server"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+                        android:gravity="center_horizontal"
+                        android:layout_alignTop="@+id/textView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/radioGroup_IF"
+        android:layout_alignEnd="@+id/radioGroup_IF"
+        android:text="@string/title_listen_interface" />
 
 
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/tab3"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"></LinearLayout>
-            </FrameLayout>
-
-        </LinearLayout>
-    </TabHost>
-
-</LinearLayout>
+</RelativeLayout>

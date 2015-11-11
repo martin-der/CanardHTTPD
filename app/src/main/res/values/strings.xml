@@ -38,6 +38,7 @@
     <string name="generic_unknown">Unknown</string>
 
     <string name="open_settings_server">Server</string>
+    <string name="open_settings_misc">Miscellaneous</string>
 
     <string name="server_status_no_download">Nothing being downloaded</string>
     <string name="server_action_finish_then_stop">Stop</string>

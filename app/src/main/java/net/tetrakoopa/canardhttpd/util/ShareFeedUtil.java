@@ -20,7 +20,7 @@ import java.io.File;
 
 public class ShareFeedUtil {
 
-	public static boolean addSharedObjectFromIntentParameter(CanardHTTPDActivity canardActivity, SharesManager manager) {
+	/*public static boolean addSharedObjectFromIntentParameter(CanardHTTPDActivity canardActivity, SharesManager manager) {
 		final String type = getIntentType(canardActivity);
 
 		if (type != null) {
@@ -49,29 +49,8 @@ public class ShareFeedUtil {
 		//SystemUIUtil.showOKDialog(canardActivity, canardActivity.message(R.string.error_failed_to_share), canardActivity.message(R.string.error_activity_param_null_mime_type));
 
 		return false;
-	}
+	}*/
 
-	public static boolean tryAddFileToSharesElseNotify(final CanardHTTPDActivity activity, SharesManager manager, final Uri uri, String realName) {
-		final String mimetype = TemporaryMimeTypeUtil.getMimeType(realName);
-		try {
-			final SharedThing thing = manager.add(activity.getApplicationContext(), uri);
-			Toast.makeText(activity, "Added "+thing.getType()+" '" + thing.getName() + "'", Toast.LENGTH_SHORT).show();
-			return true;
-		} catch (AlreadySharedException e) {
-			SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), activity.message(R.string.error_file_already_shared));
-			Log.i(CanardHTTPDActivity.TAG, "Uri '" + uri + "' already shared");
-			return false;
-		} catch (BadShareTypeException e) {
-			Log.i(CanardHTTPDActivity.TAG, "Uri '" + uri + "' cannot be shared : " + e.getMessage());
-			Toast.makeText(activity, R.string.error_failed_to_share_this_file_type, Toast.LENGTH_LONG).show();
-			return false;
-		} catch (NotFoundFromUriException e) {
-			final String message = "Uri '" + uri + "' couldn't be shared : " + e.getLocalizedMessage();
-			SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), message);
-			Log.e(CanardHTTPDActivity.TAG, message, e);
-			return false;
-		}
-	}
 	public static boolean tryAddFileToSharesElseNotify(final CanardHTTPDActivity activity, SharesManager manager, final Uri uri) {
 		try {
             final String dontAskPreferenceName = "Shares_Persistance_with_READ_EXTERNAL_CONTEXT";
@@ -98,14 +77,6 @@ public class ShareFeedUtil {
 			Log.e(CanardHTTPDActivity.TAG, message, e);
 			return false;
 		}
-	}
-
-	public static String getIntentType(Activity activity) {
-		return activity.getIntent().getType();
-	}
-
-	public static boolean existsIntentParameter(CanardHTTPDActivity canardHTTPDActivity) {
-		return getIntentType(canardHTTPDActivity) != null;
 	}
 
 	@Deprecated

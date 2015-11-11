@@ -1,5 +1,6 @@
 package net.tetrakoopa.canardhttpd;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.LocalBinder;
@@ -25,6 +27,7 @@ import net.tetrakoopa.mdu.android.util.ResourcesUtil;
 import net.tetrakoopa.mdu.android.view.util.SystemUIUtil;
 
 import java.io.File;
+import java.util.List;
 
 
 public class CanardHTTPDActivity extends AppCompatActivity {
@@ -38,7 +41,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	public final static String TAG = "CanardHTTPD";
 
-	private boolean neverCheckIntentParameters;
+	private boolean intentParametersNeedToBeChecked;
 	private boolean needToCheckPickupActivityReturn;
 
 	private MainAction mainAction;
@@ -64,13 +67,17 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 		final View mainView = findViewById(R.id.main);
 
+
 		mainAction = new MainAction(this, savedInstanceState, mainView);
 		mainAction.doPrepareLayoutAndStuff();
 
-		final ContractuelUtil.PreferenceSavingAndActivityClosingAcceptanceResponse eulaResponseHandler = new ContractuelUtil.PreferenceSavingAndActivityClosingAcceptanceResponse(this, "legal", "eula.accepted");
+        //Switch serverSwitch = (Switch)menu.findItem(R.id.server_switch).getActionView().findViewById(R.id.switchForActionBar);
+
+
+        final ContractuelUtil.PreferenceSavingAndActivityClosingAcceptanceResponse eulaResponseHandler = new ContractuelUtil.PreferenceSavingAndActivityClosingAcceptanceResponse(this, "legal", "eula.accepted");
 		ContractuelUtil.showForAcceptanceIfNeeded(this, eulaResponseHandler, "legal/apache-licence-2.0.html", R.string.misc_eula_title, android.R.string.yes, android.R.string.no);
 
-		neverCheckIntentParameters = true;
+		intentParametersNeedToBeChecked = true;
 
         dontTellAboutMissingFonctionnalies = getApplicationContext().getSharedPreferences(DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME, Context.MODE_PRIVATE);
 
@@ -98,8 +105,8 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.canard_httpd, menu);
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.canard_httpd, menu);
 
 		return true;
 	}
@@ -121,7 +128,8 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		startService(intent);
 	}
 
-	private final ServiceConnection connection = new ServiceConnection() {
+
+    private final ServiceConnection connection = new ServiceConnection() {
 
 		@Override
 		public void onServiceConnected(ComponentName componentName, IBinder serviceBinder) {
@@ -131,13 +139,9 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 			serviceBound = true;
 			mainAction.onServiceConnected(componentName, serviceBinder);
 
-			if (neverCheckIntentParameters) {
-				neverCheckIntentParameters = false;
-				if (ShareFeedUtil.existsIntentParameter(CanardHTTPDActivity.this)) {
-					if (!ShareFeedUtil.addSharedObjectFromIntentParameter(CanardHTTPDActivity.this, getService().getSharesManager())) {
-
-					}
-				}
+			if (intentParametersNeedToBeChecked) {
+				intentParametersNeedToBeChecked = false;
+                tryHandleSend();
 			}
 			if (needToCheckPickupActivityReturn) {
 				needToCheckPickupActivityReturn = false;
@@ -224,10 +228,20 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
 
-		if (id==R.id.action_menu_settings) {
+        if (id==R.id.server_switch) {
+            Toast.makeText(this, "Clicket switch", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+
+		if (id==R.id.action_menu_server) {
 			startActivity(new Intent(this, SettingsActivity.class), savedInstanceState);
 			return true;
 		}
+
+        if (id==R.id.action_menu_misc) {
+            startActivity(new Intent(this, SettingsActivity.class), savedInstanceState);
+            return true;
+        }
 
 
 		//noinspection SimplifiableIfStatement
@@ -238,6 +252,49 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
+    private boolean tryHandleSend() {
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if ("text/plain".equals(type)) {
+                handleSendText(intent);
+                return true;
+            }
+            final Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            ShareFeedUtil.tryAddFileToSharesElseNotify(this, getService().getSharesManager(), uri);
+            return true;
+        } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
+            handleSendMultipleStreams(intent);
+            return true;
+        }
+
+        return false;
+
+    }
+    void handleSendText(Intent intent) {
+        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (sharedText != null) {
+            Toast.makeText(this, "Received : "+sharedText, Toast.LENGTH_SHORT).show();
+            // Update UI to reflect text being shared
+        }
+    }
+
+    void handleSendStream(Intent intent) {
+        Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (uri != null) {
+            Toast.makeText(this, "Received : "+uri.getPath(), Toast.LENGTH_SHORT).show();
+            // Update UI to reflect image being shared
+        }
+    }
+
+    void handleSendMultipleStreams(Intent intent) {
+        List<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+        if (uris != null) {
+            // Update UI to reflect multiple images being shared
+        }
+    }
     public static final String DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME = "Dont_Tell_ABout_Missing_Functionnality";
     public SharedPreferences getDontTellAboutMissingFonctionnaliesPreferences() {
         return dontTellAboutMissingFonctionnalies;
