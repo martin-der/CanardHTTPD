@@ -4,6 +4,7 @@ import android.content.Context;
 
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedStream;
+import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.AbstractSharedThingWriter;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -20,5 +21,10 @@ public final class GenericStreamWriter extends StreamWriter {
 		// TODO Auto-generated method stub
 		writer.append("Some unknown content");
 	}
-	
+
+    @Override
+    protected SharedThingTool[] getTools(SharedStream thing) throws IOException {
+        return null;
+    }
+
 }

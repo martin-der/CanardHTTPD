@@ -5,6 +5,7 @@ import android.content.Context;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedContact;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedStream;
+import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.AbstractSharedThingWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.parent.SpecificFileWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.parent.SpecificStreamWriter;
 
@@ -29,5 +30,10 @@ public class ContactWriter extends SpecificStreamWriter {
 	public void writeThing(Writer writer, String uri, SharedStream thing) throws IOException {
 		writer.append("This is a Contact !");
 	}
+
+    @Override
+    protected SharedThingTool[] getTools(SharedStream thing) throws IOException {
+        return null;
+    }
 
 }

@@ -21,8 +21,13 @@ public class TextWriter extends AbstractSharedThingWriter<SharedText> implements
 		writer.append("<div style=\"word-wrap: break-word; white-space: pre-wrap;\">" + escapedXmlAlsoSpaceAndCR(sharedText.getText()) + "</div>");
 	}
 
+    @Override
+    protected SharedThingTool[] getTools(SharedText thing) throws IOException {
+        return null;
+    }
 
-	// @Override
+
+    // @Override
 //	protected final void writeRaw(OutputStream stream, SharedText sharedText, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) throws UnsupportedEncodingException, IOException {
 //		stream.write(sharedText.getText().getBytes(CommonHTMLComponent.DEFAULT_PAGE_ENCODING));
 //	}

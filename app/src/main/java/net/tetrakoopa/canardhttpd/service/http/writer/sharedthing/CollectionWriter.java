@@ -9,7 +9,7 @@ import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 import java.io.IOException;
 import java.io.Writer;
 
-public abstract class CollectionWriter<C extends SharedCollection> extends AbstractSharedThingWriter<C> {
+public abstract class 	CollectionWriter<C extends SharedCollection> extends AbstractSharedThingWriter<C> {
 
 	protected CollectionWriter(Context context, String httpContext) {
 		super(context, httpContext);

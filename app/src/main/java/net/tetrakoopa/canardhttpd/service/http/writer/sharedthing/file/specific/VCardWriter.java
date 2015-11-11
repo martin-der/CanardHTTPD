@@ -4,6 +4,7 @@ import android.content.Context;
 
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedStream;
+import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.AbstractSharedThingWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.parent.SpecificFileWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.parent.SpecificStreamWriter;
 
@@ -25,5 +26,10 @@ public class VCardWriter extends SpecificStreamWriter {
 	public void writeThing(Writer writer, String uri, SharedStream thing) throws IOException {
 		writer.append("This is a VCARD !");
 	}
+
+    @Override
+    protected SharedThingTool[] getTools(SharedStream thing) throws IOException {
+        return null;
+    }
 
 }
