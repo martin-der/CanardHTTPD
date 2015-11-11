@@ -33,6 +33,7 @@ import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedDirectory;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
+import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
 import net.tetrakoopa.mdu.android.util.ContractuelUtil;
@@ -280,28 +281,30 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 
 			@Override
 			public void onClick(View element) {
-				CommonSharedThing thing = (CommonSharedThing) element.getTag();
+            CommonSharedThing thing = (CommonSharedThing) element.getTag();
 
-				if (thing == null) {
-					CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Oops, tried to share a null element");
-					return;
-				}
+            if (thing == null) {
+                CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Oops, tried to share a null element");
+                return;
+            }
 
-				if (thing instanceof SharedText) {
-					SystemUtil.shareText(element.getContext(), message(R.string.title_share_sharedtext_url) + " : " + thing.getName(), MainAction.this.getServerIndexURL() + thing.getName());
-					return;
-				}
+            final String thingName = CommonHTMLComponent.escapeToUrl(thing.getName());
 
-				if (thing instanceof SharedFile) {
-					SystemUtil.shareText(element.getContext(), message(R.string.title_share_sharedfile_url) + " : " + thing.getName(), MainAction.this.getServerIndexURL() + thing.getName());
-					return;
-				}
-				if (thing instanceof SharedDirectory) {
-					SystemUtil.shareText(element.getContext(), message(R.string.title_share_sharedfolder_url) + " : " + thing.getName(), MainAction.this.getServerIndexURL() + thing.getName());
-					return;
-				}
+            if (thing instanceof SharedText) {
+                SystemUtil.shareText(element.getContext(), message(R.string.title_share_sharedtext_url) + " : " + thing.getName(), MainAction.this.getServerIndexURL() + thingName);
+                return;
+            }
 
-				CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Unable to handle share of " + thing.getClass().getName());
+            if (thing instanceof SharedFile) {
+                SystemUtil.shareText(element.getContext(), message(R.string.title_share_sharedfile_url) + " : " + thing.getName(), MainAction.this.getServerIndexURL() + thingName);
+                return;
+            }
+            if (thing instanceof SharedDirectory) {
+                SystemUtil.shareText(element.getContext(), message(R.string.title_share_sharedfolder_url) + " : " + thing.getName(), MainAction.this.getServerIndexURL() + thingName);
+                return;
+            }
+
+            CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Unable to handle share of " + thing.getClass().getName());
 			}
 		};
 
