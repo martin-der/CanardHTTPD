@@ -100,7 +100,7 @@ public class CanardHTTPDService extends Service {
 		builder.addAction(android.R.drawable.stat_sys_download_done, message(R.string.server_action_finish_then_stop), pendingIntentStop);
 		builder.addAction(android.R.drawable.ic_notification_clear_all, message(R.string.server_action_kill), pendingIntentKill);
 		Notification notification = builder.build();
-		notification.contentIntent = PendingIntent.getActivity(this, 0, applicationIntent, Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		notification.contentIntent = PendingIntent.getActivity(this, 0, applicationIntent, Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
 
 		//((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notification);
 		startForeground(NOTIFICATION_ID, notification);
@@ -178,19 +178,7 @@ public class CanardHTTPDService extends Service {
 	}
 
 	public int getPort() {
-		return server == null ? requestedPort : getServerPort(false);
-	}
-
-	/**
-	 * @throws IllegalStateException
-	 *             when <code>checkConsistency</code> is queried and real server
-	 *             port != requested port
-	 */
-	private int getServerPort(boolean checkConsistency) {
-		final int listeningPort = server.getPort(0);
-		if (listeningPort >= 0 && listeningPort != requestedPort)
-			throw new IllegalStateException("Listening Port != Requested Port ( " + listeningPort + " != " + requestedPort + " )");
-		return listeningPort;
+		return server == null ? requestedPort : server.getPort(0);
 	}
 
 
