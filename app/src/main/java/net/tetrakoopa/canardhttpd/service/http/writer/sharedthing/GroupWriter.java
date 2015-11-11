@@ -11,9 +11,4 @@ public class GroupWriter extends CollectionWriter<SharedGroup> implements Shared
 		super(context, httpContext);
 	}
 
-	protected SharedCollection getSharedCollection() {
-		return null;
-	}
-
-
 }

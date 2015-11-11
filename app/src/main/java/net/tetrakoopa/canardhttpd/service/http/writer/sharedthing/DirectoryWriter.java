@@ -11,10 +11,4 @@ public class DirectoryWriter extends CollectionWriter<SharedDirectory> implement
 		super(context, httpContext);
 	}
 
-	protected SharedCollection getSharedCollection() {
-		return null;
-	}
-
-
-
 }
