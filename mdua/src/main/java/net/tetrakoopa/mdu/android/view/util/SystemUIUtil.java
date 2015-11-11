@@ -30,6 +30,7 @@ public class SystemUIUtil {
 		public String name;
 		public String key;
 		public int mode;
+        public boolean result;
 		public DontShowAgainLinkedToPreference(boolean defaultValue, String name, String key) {
 			this(defaultValue, name, key, Context.MODE_PRIVATE);
 		}
@@ -101,12 +102,13 @@ public class SystemUIUtil {
 				.setPositiveButton(ResourcesUtil.getString(context, android.R.string.ok), new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int id) {
 						if (dontShowAgain != null) {
+                            dontShowAgain.result = dontShowAgainCheckBox.isChecked();
 							if (dontShowAgain.name != null && dontShowAgain.key != null) {
 								final SharedPreferences settings = context.getSharedPreferences(dontShowAgain.name, dontShowAgain.mode);
-								final SharedPreferences.Editor editor = settings.edit();
-								editor.putBoolean(dontShowAgain.key, dontShowAgainCheckBox.isChecked());
+                                final SharedPreferences.Editor editor = settings.edit();
+								editor.putBoolean(dontShowAgain.key, dontShowAgain.result);
 								editor.commit();
-							}
+                            }
 						}
 						if (onClickListener != null) {
 							onClickListener.onClick(dialog, id);

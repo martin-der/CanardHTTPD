@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 
 import net.tetrakoopa.mdu.android.view.mapping.exception.BadValueException;
 
-public class FloatMappingCopyProcessor extends JavaPrimitiveMappingCopyProcessor<Float> {
+public class FloatMappingCopyProcessor extends PrimitiveMappingCopyProcessor<Float> {
 
 	@Override
 	public <VO> void setIntoVOPrimitive(VO vo, Field field, Float value) throws IllegalArgumentException, IllegalAccessException, BadValueException {

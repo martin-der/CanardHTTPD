@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 
 import net.tetrakoopa.mdu.android.view.mapping.exception.BadValueException;
 
-public class BooleanMappingCopyProcessor extends JavaPrimitiveMappingCopyProcessor<Boolean> {
+public class BooleanMappingCopyProcessor extends PrimitiveMappingCopyProcessor<Boolean> {
 
 	@Override
 	public <VO> void setIntoVOPrimitive(VO vo, Field field, Boolean value) throws IllegalArgumentException, IllegalAccessException, BadValueException {
