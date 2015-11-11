@@ -18,30 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 
 public abstract class PageWriter extends AbstractContentWriter {
 
-	public enum Method {
-		GET, POST;
-
-	   public static Method fromName(String name) {
-			if (name==null)
-				return null;
-			for (Method possibleMatch : Method.values()) {
-			if (possibleMatch.name().equals(name.toUpperCase()))
-				return possibleMatch;
-			}
-			throw new IllegalArgumentException();
-	   }
-
-	}
-
-//	private final FastEnclosedTextConverter<Map<String, Object>> templatedHtmlWriter = new FastEnclosedTextConverter<Map<String, Object>>();
-//	private final FastEnclosedTextConverter.ConverterTools<Map<String, Object>> tools = new FastEnclosedTextConverter.ConverterTools<Map<String, Object>>() {
-//		@Override
-//		public void convert(Map<String, Object> context, String key, FileWriter oututStream) {
-//			// TODO Auto-generated method stub
-//
-//		}
-//	};
-
 
 	public interface ReplacerTool {
 		void write(Writer destination, TemplateArg arg) throws IOException;

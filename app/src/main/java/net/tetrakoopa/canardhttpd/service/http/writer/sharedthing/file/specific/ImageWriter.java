@@ -2,14 +2,14 @@ package net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific
 
 import android.content.Context;
 
-import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
+import net.tetrakoopa.canardhttpd.domain.sharing.SharedStream;
+import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
+import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.parent.SpecificStreamWriter;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Writer;
-import java.util.Map;
 
-public class ImageWriter extends SpecificFileWriter {
+public class ImageWriter extends SpecificStreamWriter {
 
 	public ImageWriter(Context context, String httpContext) {
 		super(context, httpContext);
@@ -17,15 +17,15 @@ public class ImageWriter extends SpecificFileWriter {
 
 	@Override
 	public HandleAffinity affinityWith(String mimeType) {
-		if (isMimeTypeOneOf(mimeType, "image/jpeg", "image/png", "image/gif")) {
+		if (isMimeTypeOneOf(mimeType, "image/jpeg", "image/gif", "image/png")) {
 			return HandleAffinity.MASTERIZES;
-		}
+		};
 		return null;
 	}
 
 	@Override
-	public void writeThing(Writer writer, String uri, SharedFile sharedFile) throws IOException {
-		writer.append("<img src=\"" + uri + "\" style=\"width:200px;\"/>");
+	protected void writeThing(Writer writer, String uri, SharedStream thing) throws IOException {
+		writer.append("<img src=\""+httpContext+"/~/_/" + CommonHTMLComponent.escapeToUrl(thing.getUri().toString()) + "\" style=\"width:200px;\"/>");
 	}
 
 }

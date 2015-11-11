@@ -10,7 +10,7 @@ import java.io.Writer;
 import java.util.Map;
 
 
-public class GenericFileWriter extends FileWriter {
+public final class GenericFileWriter extends FileWriter {
 
 	public GenericFileWriter(Context context, String httpContext) {
 		super(context, httpContext);

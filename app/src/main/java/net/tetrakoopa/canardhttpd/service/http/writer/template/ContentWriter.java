@@ -6,9 +6,9 @@ import android.util.Log;
 import net.tetrakoopa.canardhttpd.CanardHTTPDService;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.domain.metafs.BreadCrumb;
-import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
-import net.tetrakoopa.canardhttpd.service.sharing.exception.IncorrectUriException;
+import net.tetrakoopa.canardhttpd.service.sharing.exception.IncorrectUrlException;
+import net.tetrakoopa.canardhttpd.service.sharing.exception.NoSuchThingSharedException;
 import net.tetrakoopa.mdu.text.formater.BufferedEnclosedTextConverter;
 import net.tetrakoopa.mdu.text.formater.EnclosedTextConverter;
 
@@ -16,11 +16,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
 
 public abstract class ContentWriter extends AbstractContentWriter {
 
@@ -47,15 +44,7 @@ public abstract class ContentWriter extends AbstractContentWriter {
 	}
 	private final Map<String, ReplacerTool> context = new HashMap<>();
 
-	public boolean write(Writer destination, SharesManager sharesManager, String url) throws IOException {
-		final BreadCrumb breadCrumb = new BreadCrumb();
-		final SharedThing thing;
-		try {
-			thing = sharesManager.findThingAndBuildBreadCrumb(url, breadCrumb);
-		} catch (IncorrectUriException e) {
-			Log.d(CanardHTTPDService.TAG, "Could not find share at '" + url + "' : " + e.getMessage());
-			return false;
-		}
+	public void write(Writer destination, final SharedThing thing, final BreadCrumb breadCrumb) throws IOException {
 
 		final EnclosedTextConverter.ConverterTools<Map<String, ReplacerTool>> converterTools = new EnclosedTextConverter.ConverterTools<Map<String, ReplacerTool>>() {
 
@@ -78,8 +67,6 @@ public abstract class ContentWriter extends AbstractContentWriter {
 		final Reader reader = new InputStreamReader(getAsset("www/template/piece/content.html"), "UTF-8");
 
 		replacer.process(reader, destination, context, converterTools);
-
-		return true;
 	}
 
 
