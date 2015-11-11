@@ -5,9 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
 
+import net.tetrakoopa.canardhttpd.CanardHTTPDActivity;
 import net.tetrakoopa.canardhttpd.domain.common.CommonSharedThing;
 import net.tetrakoopa.canardhttpd.domain.common.SharedCollection;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
@@ -20,9 +19,11 @@ import net.tetrakoopa.canardhttpd.domain.sharing.SharedStream;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
 import net.tetrakoopa.canardhttpd.service.sharing.exception.AlreadySharedException;
 import net.tetrakoopa.canardhttpd.service.sharing.exception.BadShareTypeException;
-import net.tetrakoopa.canardhttpd.service.sharing.exception.IncorrectUriException;
+import net.tetrakoopa.canardhttpd.service.sharing.exception.NoSuchThingSharedException;
 import net.tetrakoopa.canardhttpd.service.sharing.exception.NotFoundFromUriException;
 import net.tetrakoopa.canardhttpd.service.sharing.exception.NotSharedException;
+import net.tetrakoopa.mdu.android.exception.MissingNeededException;
+import net.tetrakoopa.mdu.android.util.ContentUtil;
 
 import java.io.File;
 import java.net.URLDecoder;
@@ -38,6 +39,8 @@ public class SharesManager {
 	private final Set<CommonSharedThing.Tag> tags = new HashSet<CommonSharedThing.Tag>();
 
 	public final CommonSharedThing.Tag ST_TAG_PUBLIC = new CommonSharedThing.Tag(CommonSharedThing.Tag.SystemAttribute.PUBLIC);
+
+	public final Set<CanardHTTPDActivity.UNMET_REQUIREMENT> unmetRequirements = new HashSet<>();
 
 	private int textIndexSequenceCounter = 0;
 	
@@ -76,7 +79,7 @@ public class SharesManager {
 			throw new BadShareTypeException("Don't know this kind of object : '"+type+"'");
 		}
 
-		if (type.equals("vnd.android.cursor.item/contact")) {
+		if (type.equals(SharedContact.ANDROID_MIME_TYPE)) {
 			return addContact(contentResolver, uri);
 		}
 		if (type.startsWith("image/")) {
@@ -121,8 +124,14 @@ public class SharesManager {
 	}
 
 	private SharedStream addStream(ContentResolver contentResolver, Uri uri, String mimeType) throws BadShareTypeException, AlreadySharedException {
-		final String path = getPath(contentResolver, uri);
-		return addThing(new SharedStream(uri, mimeType, path != null ? extractFilename(path) : uri.getPath()));
+		String path = null;
+		try {
+			path = ContentUtil.getMediaPath(contentResolver, uri);
+		} catch(MissingNeededException missingNeededException) {
+			unmetRequirements.add(CanardHTTPDActivity.UNMET_REQUIREMENT.PERMISSION_MISSING_READ_EXTERNAL_STORAGE);
+		}
+		final String name = path != null ? path : uri.getPath();
+		return addThing(new SharedStream(uri, mimeType, extractFilename(name)));
 	}
 
 	public synchronized SharedFile addFile(Uri uri, File file, String mimeType) throws AlreadySharedException, BadShareTypeException {
@@ -154,32 +163,6 @@ public class SharesManager {
 		return thing;
 	}
 
-	private static String getPath(ContentResolver contentresolver, Uri uri) {
-		// Will return "image:x*"
-		final String wholeID = DocumentsContract.getDocumentId(uri);
-
-		// Split at colon, use second item in the array
-		final String id = wholeID.split(":")[1];
-
-		final String[] column = { MediaStore.Images.Media.DATA };
-
-		// where id is equal to
-		final String sel = MediaStore.Images.Media._ID + "=?";
-
-		final Cursor cursor = contentresolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-				column, sel, new String[]{id}, null);
-		try {
-
-			int columnIndex = cursor.getColumnIndex(column[0]);
-
-			if (cursor.moveToFirst()) {
-				return cursor.getString(columnIndex);
-			}
-			return null;
-		} finally {
-			cursor.close();
-		}
-	}
 
 	public synchronized SharedFile findFile(File file) {
 		return findFile(Uri.fromFile(file));
@@ -225,10 +208,10 @@ public class SharesManager {
 		return sharedGroup.getThings();
 	}
 	
-	public SharedThing findThingAndBuildBreadCrumb(String url, final BreadCrumb breadCrumb) throws IncorrectUriException {
+	public SharedThing findThingAndBuildBreadCrumb(String url, final BreadCrumb breadCrumb) throws NoSuchThingSharedException {
 		
 		if (!url.startsWith("/"))
-			throw new IncorrectUriException("Urls start with '/'");
+			throw new IllegalArgumentException("Urls start with '/'");
 		
 		url = url.substring(1,url.length());
 		
@@ -262,7 +245,7 @@ public class SharesManager {
 			}
 
 			if (currentThing == null) {
-				throw new IncorrectUriException("No element '" + pathPart + " could be found in '" + breadCrumb.asPath() + "'");
+				throw new NoSuchThingSharedException(url);
 			}
 
 			breadCrumbParts.add(new BreadCrumb.Part(currentThing));

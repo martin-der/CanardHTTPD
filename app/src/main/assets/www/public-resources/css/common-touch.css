@@ -1,0 +1,7 @@
+.touch-only-h-scrollable{
+  width:100%;
+  height:20px;
+  overflow-y:hidden;
+  overflow-x:scroll;
+  -webkit-overflow-scrolling:touch;
+}

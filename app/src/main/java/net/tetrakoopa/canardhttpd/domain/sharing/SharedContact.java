@@ -15,6 +15,8 @@ public class SharedContact extends CommonSharedThing {
 
 	private final String id;
 
+	public final static String ANDROID_MIME_TYPE = "vnd.android.cursor.item/contact";
+
 	public SharedContact(Uri uri, String name, String id) {
 		super(uri, name);
 		this.id = id;

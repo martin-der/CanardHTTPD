@@ -120,11 +120,8 @@ public class CanardHTTPDService extends Service {
 	}
 
 	public void start(Intent intent, CanardHTTPDActivity canardHTTPDActivity, ServerStatusChangeListener listener) {
-		//Toast.makeText(this.getApplicationContext(), "start | starting service...", Toast.LENGTH_SHORT).show();
 		super.startService(intent);
-		//Toast.makeText(this.getApplicationContext(), "start | service started", Toast.LENGTH_SHORT).show();
 		startServer(listener, canardHTTPDActivity);
-		//Toast.makeText(this.getApplicationContext(), "start | HTTPD started", Toast.LENGTH_SHORT).show();
 	}
 	private synchronized void startServer(ServerStatusChangeListener listener, CanardHTTPDActivity canardHTTPDActivity) {
 

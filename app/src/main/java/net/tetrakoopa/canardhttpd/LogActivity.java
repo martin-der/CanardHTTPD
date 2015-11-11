@@ -5,12 +5,13 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 
 import net.tetrakoopa.mdu.android.util.ResourcesUtil;
 
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class LogActivity extends Activity {
+public class LogActivity extends AppCompatActivity {
 
 	public final static String MANIFEST_ACTIVITY = CanardHTTPDActivity.MANIFEST_PACKAGE+".LogActivity";
 

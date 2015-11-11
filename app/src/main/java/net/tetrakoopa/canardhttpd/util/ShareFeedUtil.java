@@ -41,7 +41,7 @@ public class ShareFeedUtil {
 		if (streamUri != null) {
 			Toast.makeText(canardActivity, "streamUri = " + streamUri.getClass().getName() + ":" + streamUri.getPath(), Toast.LENGTH_LONG).show();
 			File file = new File(streamUri.getPath());
-			tryToAddFileToSharesElseNotify(canardActivity, manager, streamUri);
+			tryAddFileToSharesElseNotify(canardActivity, manager, streamUri);
 			return true;
 		}
 		
@@ -51,7 +51,7 @@ public class ShareFeedUtil {
 		return false;
 	}
 
-	public static boolean tryToAddFileToSharesElseNotify(final CanardHTTPDActivity activity, SharesManager manager, final Uri uri, String realName) {
+	public static boolean tryAddFileToSharesElseNotify(final CanardHTTPDActivity activity, SharesManager manager, final Uri uri, String realName) {
 		final String mimetype = TemporaryMimeTypeUtil.getMimeType(realName);
 		try {
 			final SharedThing thing = manager.add(activity.getApplicationContext(), uri);
@@ -72,10 +72,14 @@ public class ShareFeedUtil {
 			return false;
 		}
 	}
-	public static boolean tryToAddFileToSharesElseNotify(final CanardHTTPDActivity activity, SharesManager manager, final Uri uri) {
+	public static boolean tryAddFileToSharesElseNotify(final CanardHTTPDActivity activity, SharesManager manager, final Uri uri) {
 		try {
+			final boolean hasMissingReadPermission =  manager.unmetRequirements.contains(CanardHTTPDActivity.UNMET_REQUIREMENT.PERMISSION_MISSING_READ_EXTERNAL_STORAGE);
 			final SharedThing thing = manager.add(activity.getApplicationContext(), uri);
 			Toast.makeText(activity, "Added "+thing.getType()+ " '" + thing.getName() + "'", Toast.LENGTH_SHORT).show();
+			if (!hasMissingReadPermission && manager.unmetRequirements.contains(CanardHTTPDActivity.UNMET_REQUIREMENT.PERMISSION_MISSING_READ_EXTERNAL_STORAGE)) {
+				SystemUIUtil.showOKDialog(activity, activity.message(R.string.title_half_functionnal), activity.message(R.string.message_READ_EXTERNAL_STORAGE_for_share_manager), new SystemUIUtil.DontShowAgainLinkedToPreference(true, "Missing_Functionnality", "DontAsk_Shares_READ_EXTERNAL_CONTEXT"));
+			}
 			return true;
 		} catch (AlreadySharedException e) {
 			SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), activity.message(R.string.error_file_already_shared));

@@ -9,6 +9,22 @@ a {
 	font-style: normal; 
 }
 
+div.presentation>div.information {
+	float: left;
+}
+div.presentation>div.tool {
+	float: right;
+}
+div.presentation div.float-clear {
+	clear: both;
+}
+div.presentation>hr {
+	margin-bottom: 1em;
+    margin-top: 1em;
+}
+div.presentation div.thing {
+}
+
 div.footer {
 	font-size: smaller;
 }

@@ -5,7 +5,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -17,21 +16,21 @@ import android.view.View;
 import android.widget.Toast;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.LocalBinder;
-import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener;
-import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
 import net.tetrakoopa.canardhttpd.view.action.MainAction;
 import net.tetrakoopa.mdu.android.util.ContractuelUtil;
 import net.tetrakoopa.mdu.android.util.ResourcesUtil;
-import net.tetrakoopa.mdu.android.util.SystemUtil;
 import net.tetrakoopa.mdu.android.view.util.SystemUIUtil;
-import net.tetrakoopa.mdu.util.FileUtil;
 
 import java.io.File;
 
 
 public class CanardHTTPDActivity extends AppCompatActivity {
+
+	public enum UNMET_REQUIREMENT {
+		PERMISSION_MISSING_READ_EXTERNAL_STORAGE;
+	}
 
 	public final static String MANIFEST_PACKAGE = "net.tetrakoopa.canardhttpd";
 	public final static String MANIFEST_ACTIVITY = MANIFEST_PACKAGE+".CanardHTTPDActivity";
@@ -73,6 +72,8 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		neverCheckIntentParameters = true;
 
 		createService();
+
+		SystemUIUtil.values_R.strings.dont_show_again = R.string.dont_show_again;
 	}
 
 	private void copyDefaultCertificatToDir(String path) {
@@ -135,7 +136,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 			}
 			if (needToCheckPickupActivityReturn) {
 				needToCheckPickupActivityReturn = false;
-				if (ShareFeedUtil.tryToAddFileToSharesElseNotify(CanardHTTPDActivity.this, getService().getSharesManager(), uriFromPickupActivityReturn))
+				if (ShareFeedUtil.tryAddFileToSharesElseNotify(CanardHTTPDActivity.this, getService().getSharesManager(), uriFromPickupActivityReturn))
 					mainAction.invalidateListe();
 			}
 		}
@@ -195,7 +196,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 				try {
 					final Uri uri = data.getData();
 					if (serviceBound) {
-						if (ShareFeedUtil.tryToAddFileToSharesElseNotify(this, getService().getSharesManager(), uri)) {
+						if (ShareFeedUtil.tryAddFileToSharesElseNotify(this, getService().getSharesManager(), uri)) {
 							mainAction.updateSharedThingsList();
 						}
 					} else {

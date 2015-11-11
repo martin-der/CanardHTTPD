@@ -1,6 +1,8 @@
 package net.tetrakoopa.canardhttpd.service.http;
 
+import android.content.ContentResolver;
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDActivity;
@@ -8,25 +10,29 @@ import net.tetrakoopa.canardhttpd.CanardHTTPDService;
 import net.tetrakoopa.canardhttpd.R;
 import net.tetrakoopa.canardhttpd.domain.common.SharedCollection;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
+import net.tetrakoopa.canardhttpd.domain.metafs.BreadCrumb;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedDirectory;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedGroup;
+import net.tetrakoopa.canardhttpd.domain.sharing.SharedStream;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
 import net.tetrakoopa.canardhttpd.service.CanardLogger;
 import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.DirectoryWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.GroupWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.TextWriter;
-import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.GenericFileWriter;
+import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.GenericStreamWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.ImageWriter;
-import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.SpecificFileWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.VCardWriter;
+import net.tetrakoopa.canardhttpd.service.http.writer.sharedthing.file.specific.parent.SpecificSerialisedWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.template.ContentWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.template.PageWriter;
 import net.tetrakoopa.canardhttpd.service.http.writer.template.TemplateArg;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
+import net.tetrakoopa.canardhttpd.service.sharing.exception.NoSuchThingSharedException;
 import net.tetrakoopa.canardhttpd.util.TemporaryMimeTypeUtil;
 import net.tetrakoopa.canardhttpd.util.WebUtil;
+import net.tetrakoopa.mdu.util.FileUtil;
 
 import org.apache.http.HttpRequest;
 import org.eclipse.jetty.server.Connector;
@@ -40,6 +46,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -61,7 +68,7 @@ public class CanardHTTPD extends Server {
 
 	public static final String MIME_HTML = "text/html";
 
-	private final List<SpecificFileWriter> typeMimeWriters = new ArrayList<>();
+	private final List<SpecificSerialisedWriter> typeMimeWriters = new ArrayList<>();
 
 	private final Context context;
 	private final SharesManager sharesManager;
@@ -69,7 +76,7 @@ public class CanardHTTPD extends Server {
 	private TextWriter textWriter;
 	private GroupWriter groupWriter;
 	private DirectoryWriter directoryWriter;
-	private GenericFileWriter genericFileWriter;
+	private GenericStreamWriter genericWriter;
 
 	private String encoding = CommonHTMLComponent.DEFAULT_ENCODING;
 	
@@ -96,7 +103,7 @@ public class CanardHTTPD extends Server {
 		this.directoryWriter = new DirectoryWriter(context, httpContext);
 		this.groupWriter = new GroupWriter(context, httpContext);
 		this.textWriter = new TextWriter(context, httpContext);
-		this.genericFileWriter = new GenericFileWriter(context, httpContext);
+		this.genericWriter = new GenericStreamWriter(context, httpContext);
 
 
 		this.typeMimeWriters.add(new VCardWriter(context, httpContext));
@@ -158,6 +165,7 @@ public class CanardHTTPD extends Server {
 				final long end = System.nanoTime();
 				CanardLogger.d("Request for '" + request.getRequestURI() + "' served in " + ((end - begin)/1000) + " ms");
 			} catch (Exception ex) {
+				serveInternalErrorResponse(request, response, ex);
 				final long end = System.nanoTime();
 				CanardLogger.e("Failed to serve '" + request.getRequestURI() + "' ( after " + ((end - begin)/1000) + " ms )");
 			}
@@ -168,20 +176,6 @@ public class CanardHTTPD extends Server {
 		return context.getAssets().open(asset);
 	}
 
-	protected void serveAssetOrNotFound(HttpServletRequest request, HttpServletResponse response, String assetName) throws IOException {
-		final String mimeType = findMimeType(assetName);
-		serveAssetOrNotFound(request, response, assetName, mimeType);
-	}
-
-	private String findMimeType(String assetName) {
-
-		switch(assetName) {
-			//case : return "application/x-png";
-
-		}
-
-		return null;
- 	}
 
 	protected void serveAssetOrNotFound(HttpServletRequest request, HttpServletResponse response, String assetName, String mimeType) throws IOException {
 		final InputStream inputStream;
@@ -221,13 +215,17 @@ public class CanardHTTPD extends Server {
 		}
 
 
+		if (uri.startsWith("/~/_/")) {
+			serveDynamicResource(request, response, uri.substring(4));
+			return;
+		}
 		if (uri.startsWith("/~/")) {
 			serveWWWStaticResource(request, response, uri.substring(2));
 			return;
 		}
 
 		if (uri.startsWith("/")) {
-			if ( serveThing(request, response)) {
+			if ( ! serveThing(request, response)) {
 				Log.i(CanardHTTPDActivity.TAG, "Could not handle url '" + uri +"'");
 			}
 			return;
@@ -237,11 +235,16 @@ public class CanardHTTPD extends Server {
 	}
 
 	private boolean serveThing(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+
+
 		final String contextPath = request.getContextPath() == null ? "" : request.getContextPath();
 
 		final String uri = request.getRequestURI();
-		final PrintWriter writer = new PrintWriter(response.getOutputStream());
-		// response.get
+
+		response.setContentType("text/html");
+		response.setCharacterEncoding(CommonHTMLComponent.DEFAULT_ENCODING);
+		response.setStatus(HttpServletResponse.SC_OK);
+
 
 //		Map<String, List<String>> parameters = new HashMap<String, List<String>>();
 //		int ii = uri.indexOf("?");
@@ -279,39 +282,51 @@ public class CanardHTTPD extends Server {
 
 		final PageWriter pageWriter = new PageWriter(context, contextPath, request) {
 			@Override
-			protected void writeThemeName(HttpServletRequest request, Writer destination, TemplateArg arg) {
-				writer.write(themeName);
+			protected void writeThemeName(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException {
+				destination.write(themeName);
 			}
 			@Override
-			protected void writeHead(HttpServletRequest request, Writer destination, TemplateArg arg) {
+			protected void writeHead(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException {
 				if (isMobileUser) {
-					writer.write("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\">\n");
+					destination.write("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\">\n");
 					final String title = uri;
-					writer.write("<title>" + escapedXml((title == null ? CanardHTTPD.this.title : (title + " - " + CanardHTTPD.this.title))) + "</title></head>");
+					destination.write("<title>" + escapedXml((title == null ? CanardHTTPD.this.title : (title + " - " + CanardHTTPD.this.title))) + "</title></head>");
 				}
 			}
 
 			@Override
-			protected void writeHeader(HttpServletRequest request, Writer destination, TemplateArg arg) {
-				writeAsset("www/template/piece/header.html", writer);
+			protected void writeHeader(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException {
+				writeAsset("www/template/piece/header.html", destination);
 			}
 
 			@Override
-			protected void writeContent(HttpServletRequest request, Writer destination, TemplateArg arg) {
+			protected void writeContent(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException {
+
 				try {
-					if (!contentWriter.write(destination, sharesManager, uri)) {
-						Log.e(CanardHTTPDService.TAG, "Failed to write thing content (uri='" + uri + "')");
-					};
+					final BreadCrumb breadCrumb = new BreadCrumb();
+					final SharedThing thing;
+					try {
+						thing = sharesManager.findThingAndBuildBreadCrumb(uri, breadCrumb);
+					} catch (NoSuchThingSharedException e) {
+						destination.write("Nothing at <span>"+escapedXmlAlsoSpace(uri)+"</span>");
+						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+						return;
+					}
+					contentWriter.write(destination, thing, breadCrumb);
+
 				} catch (IOException ioex) {
 					Log.e(CanardHTTPDService.TAG, "Failed to write thing content (uri='" + uri + "') : " + ioex.getMessage());
 				}
 			}
 
 			@Override
-			protected void writeFooter(HttpServletRequest request, Writer destination, TemplateArg arg) {
-				writeAsset("www/template/piece/footer.html", writer);
+			protected void writeFooter(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException {
+				writeAsset("www/template/piece/footer.html", destination);
 			}
 		};
+
+
+		final PrintWriter writer = new PrintWriter(response.getOutputStream());
 
 		pageWriter.write(writer, null);
 
@@ -333,34 +348,74 @@ public class CanardHTTPD extends Server {
 			textWriter.write(writer, url, (SharedText) thing);
 		} else if (thing instanceof SharedFile) {
 			final SharedFile sharedFile = (SharedFile)thing;
-			SpecificFileWriter specificWriter = null;
+			SpecificSerialisedWriter specificWriter = null;
 			if (sharedFile.getMimeType() != null) {
-				specificWriter = SpecificFileWriter.getBestHandler(sharedFile.getMimeType(), typeMimeWriters);
+				specificWriter = SpecificSerialisedWriter.getBestHandler(sharedFile.getMimeType(), typeMimeWriters);
 			}
 			if (specificWriter != null) {
 				specificWriter.write(writer, url, sharedFile);
 			} else {
 				Log.w(CanardHTTPDActivity.TAG, "No handler found for file with mime '" + sharedFile.getMimeType() + "'");
-				genericFileWriter.write(writer, url, sharedFile);
+				//genericWriter.write(writer, url, sharedFile);
+			}
+		} else if (thing instanceof SharedStream) {
+			final SharedStream sharedStream = (SharedStream)thing;
+			SpecificSerialisedWriter specificWriter = null;
+			if (sharedStream.getMimeType() != null) {
+				specificWriter = SpecificSerialisedWriter.getBestHandler(sharedStream.getMimeType(), typeMimeWriters);
+			}
+			if (specificWriter != null) {
+				specificWriter.write(writer, url, sharedStream);
+			} else {
+				Log.w(CanardHTTPDActivity.TAG, "No handler found for file with mime '" + sharedStream.getMimeType() + "'");
+				genericWriter.write(writer, url, sharedStream);
 			}
 		}
 		return true;
 	}
 
-	private void serveWWWStaticResource(HttpServletRequest request, HttpServletResponse response, String resource) throws IOException {
+	private void serveDynamicResource(HttpServletRequest request, HttpServletResponse response, String resource) throws IOException {
 		if (resource.startsWith("/") && resource.length() > 1) {
-			response.addHeader("Cache-Control","max-age=31536000");
-			String asset = resource.substring(1);
-			String mimeType = //SystemUtil.getMimeTypeFromExtension(asset);
-					TemporaryMimeTypeUtil.basicMimeTypeFromExtension(asset);
-			serveAssetOrNotFound(request, response, "www/public-resources/" + asset, mimeType);
+			final Uri uri = Uri.parse(CommonHTMLComponent.unescapeFromUrl(resource.substring(1)));
+			final ContentResolver contentResolver = context.getContentResolver();
+			final InputStream input;
+			try {
+				input = contentResolver.openInputStream(uri);
+			} catch(FileNotFoundException fnfex) {
+				serveNotFoundResponse(request, response);
+				return;
+			}
+			final String mimeType = contentResolver.getType(uri);
+			if (mimeType != null) {
+				response.setContentType(mimeType);
+			}
+			final long length = input.available();
+			if (length > 0) {
+				response.setHeader("Content-Length", String.valueOf(length));
+			}
+			makeResponseCached(response);
+			FileUtil.copy(input, response.getOutputStream());
 		} else {
 			serveNotFoundResponse(request, response);
 		}
 	}
 
+
+	private void serveWWWStaticResource(HttpServletRequest request, HttpServletResponse response, String resource) throws IOException {
+		if (resource.startsWith("/") && resource.length() > 1) {
+			makeResponseCached(response);
+			final String asset = resource.substring(1);
+			final String mimeType = TemporaryMimeTypeUtil.getMimeType(asset);
+			serveAssetOrNotFound(request, response, "www/public-resources/" + asset, mimeType);
+		} else {
+			serveNotFoundResponse(request, response);
+		}
+	}
+	private static void makeResponseCached(HttpServletResponse response) {
+		response.addHeader("Cache-Control","max-age=31536000");
+	}
 	public static void serveNotFoundResponse(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		serveText(request, response, HttpServletResponse.SC_NOT_FOUND, MIME_HTML, "Not found");
+		serveText(request, response, HttpServletResponse.SC_NOT_FOUND, MIME_HTML, "<h1>Error 404 : Not found</h1>");
 	}
 
 	public static void serveInternalErrorResponse(HttpServletRequest request, HttpServletResponse response, Throwable ex) throws IOException {

@@ -3,11 +3,12 @@ package net.tetrakoopa.canardhttpd;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import net.tetrakoopa.canardhttpd.view.action.MonitoringAction;
 
-public class MonitoringActivity extends Activity {
+public class MonitoringActivity extends AppCompatActivity {
 
 	public final static String TAG = CanardHTTPDActivity.TAG + "-" + "Monitoring";
 

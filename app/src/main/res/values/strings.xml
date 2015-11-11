@@ -11,13 +11,18 @@
     <string name="misc_eula_accept">Accept</string>
     <string name="misc_eula_refuse">Refuse</string>
 
+    <string name="dont_show_again">Don\'t ever tell me about it</string>
+
     <string name="BUTTON_server_start">Start</string>
     <string name="BUTTON_server_stop">Stop</string>
 
     <string name="show_about">Show \'about\' information</string>
     <string name="share_server_info">Share server information</string>
     <string name="add_share">Add something to share list</string>
+    <string name="add_collection_share">Add a collection to share list</string>
 
+    <string name="title_half_functionnal">Some functionnality missing...</string>
+    <string name="message_READ_EXTERNAL_STORAGE_for_share_manager">Since \'Read External Storage\' permission is not granted, the application won\'t be able to keep track of shared file on external storage upon stop and restart.</string>
 
     <string name="domain_log">Log</string>
     <string name="domain_activity">Activity</string>
