@@ -163,7 +163,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		logButton = (Button) parentView.findViewById(R.id.action_show_log);
 
 
-		serverDependentViews = new View[] { shareServerButton, activityButton, sharedFilesList };
+		serverDependentViews = new View[] { shareServerButton, activityButton };
 		serviceDependentViews = new View[] { shareView };
 	}
 
@@ -258,21 +258,21 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 
 			@Override
 			public void onClick(View element) {
-				CommonSharedThing thing = (CommonSharedThing) element.getTag();
+            final CommonSharedThing thing = (CommonSharedThing) element.getTag();
 
-				if (thing == null) {
-					CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Oops, tried to delete a null element");
-					return;
-				}
+            if (thing == null) {
+                CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Oops, tried to delete a null element");
+                return;
+            }
 
-				try {
-					MainAction.this.sharesManager().remove(thing);
-				} catch (/* NotShared */Exception ex) {
-					CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Failed to remove : " + ex.getClass().getName(), ex);
-					return;
-				}
-				MainAction.this.updateSharedThingsList();
-				//Toast.makeText(MainAction.this.activity(), "Removed " + thing.getName(), Toast.LENGTH_SHORT).show();
+            try {
+                MainAction.this.sharesManager().remove(thing);
+            } catch (/* NotShared */Exception ex) {
+                CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Failed to remove : " + ex.getClass().getName(), ex);
+                return;
+            }
+            MainAction.this.updateSharedThingsList();
+            //Toast.makeText(MainAction.this.activity(), "Removed " + thing.getName(), Toast.LENGTH_SHORT).show();
 
 			}
 		};
@@ -281,7 +281,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 
 			@Override
 			public void onClick(View element) {
-            CommonSharedThing thing = (CommonSharedThing) element.getTag();
+            final CommonSharedThing thing = (CommonSharedThing) element.getTag();
 
             if (thing == null) {
                 CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Oops, tried to share a null element");
@@ -312,32 +312,33 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		public View getView(final int position, View convertView, ViewGroup parent) {
 			final SharesManager filesManager = sharesManager();
 			final SharedThing thing = filesManager.getThings().get(position);
-			
-			if (convertView == null) {
+
+            final boolean needInit = convertView == null;
+			if (needInit) {
 				LayoutInflater vi = activity.getLayoutInflater();
 				convertView = vi.inflate(R.layout.shared_thing_listitem, null);
-
-				Button deleteButton = (Button) convertView.findViewById(R.id.sharedthing_action_remove);
-				deleteButton.setTag(thing);
-				deleteButton.setClickable(true);
-				deleteButton.setOnClickListener(deleteButtonOnClickListener);
-
-				Button shareButton = (Button) convertView.findViewById(R.id.action_share_sharedthing_info);
-				shareButton.setTag(thing);
-				shareButton.setClickable(true);
-				shareButton.setOnClickListener(shareButtonOnClickListener);
 			}
 
-			TextView name = (TextView) convertView.findViewById(R.id.sharedthing_name);
-			TextView shareDate = (TextView) convertView.findViewById(R.id.sharedthing_shareDate);
-			ImageView icon = (ImageView) convertView.findViewById(R.id.sharedthing_icon);
-			TextView mime = (TextView) convertView.findViewById(R.id.sharedthing_mime);
-			TextView users = (TextView) convertView.findViewById(R.id.sharedthing_users);
+            Button deleteButton = (Button) convertView.findViewById(R.id.sharedthing_action_remove);
+            deleteButton.setTag(thing);
 
-			DateFormat.is24HourFormat(MainAction.this.activity());
+            Button shareButton = (Button) convertView.findViewById(R.id.action_share_sharedthing_info);
+            shareButton.setTag(thing);
 
+            TextView name = (TextView) convertView.findViewById(R.id.sharedthing_name);
+            TextView shareDate = (TextView) convertView.findViewById(R.id.sharedthing_shareDate);
+            ImageView icon = (ImageView) convertView.findViewById(R.id.sharedthing_icon);
+            TextView mime = (TextView) convertView.findViewById(R.id.sharedthing_mime);
+            TextView users = (TextView) convertView.findViewById(R.id.sharedthing_users);
 
-			name.setText(thing.getName());
+            if (needInit) {
+                deleteButton.setClickable(true);
+                deleteButton.setOnClickListener(deleteButtonOnClickListener);
+                shareButton.setClickable(true);
+                shareButton.setOnClickListener(shareButtonOnClickListener);
+            }
+
+            name.setText(thing.getName());
 
 			shareDate.setText(thing.getShareDate() == null ? message(R.string.generic_unknown) : formater.getDateFormat().format(thing.getShareDate()));
 			if (thing instanceof SharedFile) {
