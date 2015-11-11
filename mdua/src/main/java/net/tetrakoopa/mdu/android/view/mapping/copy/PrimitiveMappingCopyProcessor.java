@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 
 import net.tetrakoopa.mdu.android.view.mapping.exception.BadValueException;
 
-public abstract class JavaPrimitiveMappingCopyProcessor<TYPE> extends ObjectMappingCopyProcessor<TYPE> {
+public abstract class PrimitiveMappingCopyProcessor<TYPE> extends ObjectMappingCopyProcessor<TYPE> {
 
 	@Override
 	protected final <VO> void setIntoVOUnchecked(VO vo, Field field, TYPE value) throws IllegalArgumentException, IllegalAccessException, BadValueException {
