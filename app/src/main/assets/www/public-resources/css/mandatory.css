@@ -25,6 +25,11 @@ div.presentation>hr {
 div.presentation div.thing {
 }
 
+img.tool {
+	width: 80px;
+	height: 80px;
+}
+
 div.footer {
 	font-size: smaller;
 }
