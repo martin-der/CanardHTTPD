@@ -11,7 +11,7 @@
     <string name="misc_eula_accept">Accept</string>
     <string name="misc_eula_refuse">Refuse</string>
 
-    <string name="dont_show_again">Don\'t ever tell me about it</string>
+    <string name="dont_show_again">Don\'t tell me again</string>
 
     <string name="BUTTON_server_start">Start</string>
     <string name="BUTTON_server_stop">Stop</string>
