@@ -74,11 +74,14 @@ public class ShareFeedUtil {
 	}
 	public static boolean tryAddFileToSharesElseNotify(final CanardHTTPDActivity activity, SharesManager manager, final Uri uri) {
 		try {
-			final boolean hasMissingReadPermission =  manager.unmetRequirements.contains(CanardHTTPDActivity.UNMET_REQUIREMENT.PERMISSION_MISSING_READ_EXTERNAL_STORAGE);
+            final String dontAskPreferenceName = "Shares_Persistance_with_READ_EXTERNAL_CONTEXT";
 			final SharedThing thing = manager.add(activity.getApplicationContext(), uri);
 			Toast.makeText(activity, "Added "+thing.getType()+ " '" + thing.getName() + "'", Toast.LENGTH_SHORT).show();
-			if (!hasMissingReadPermission && manager.unmetRequirements.contains(CanardHTTPDActivity.UNMET_REQUIREMENT.PERMISSION_MISSING_READ_EXTERNAL_STORAGE)) {
-				SystemUIUtil.showOKDialog(activity, activity.message(R.string.title_half_functionnal), activity.message(R.string.message_READ_EXTERNAL_STORAGE_for_share_manager), new SystemUIUtil.DontShowAgainLinkedToPreference(true, "Missing_Functionnality", "DontAsk_Shares_READ_EXTERNAL_CONTEXT"));
+			if (manager.unmetRequirements.contains(CanardHTTPDActivity.UNMET_REQUIREMENT.PERMISSION_MISSING_READ_EXTERNAL_STORAGE)) {
+                if (!activity.getDontTellAboutMissingFonctionnaliesPreferences().getBoolean(dontAskPreferenceName, false)) {
+                    final SystemUIUtil.DontShowAgainLinkedToPreference dontShowAgain = new SystemUIUtil.DontShowAgainLinkedToPreference(true, CanardHTTPDActivity.DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME, dontAskPreferenceName);
+                    SystemUIUtil.showOKDialog(activity, activity.message(R.string.title_half_functionnal), activity.message(R.string.message_READ_EXTERNAL_STORAGE_for_share_manager), dontShowAgain);
+                }
 			}
 			return true;
 		} catch (AlreadySharedException e) {

@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -40,8 +41,6 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	private boolean neverCheckIntentParameters;
 	private boolean needToCheckPickupActivityReturn;
 
-	private String serverIp;
-
 	private MainAction mainAction;
 	
 
@@ -52,6 +51,8 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	private Uri uriFromPickupActivityReturn;
 
 	private Bundle savedInstanceState;
+
+    private SharedPreferences dontTellAboutMissingFonctionnalies;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +72,11 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 		neverCheckIntentParameters = true;
 
-		createService();
+        dontTellAboutMissingFonctionnalies = getApplicationContext().getSharedPreferences(DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME, Context.MODE_PRIVATE);
+
+
+        createService();
+
 
 		SystemUIUtil.values_R.strings.dont_show_again = R.string.dont_show_again;
 	}
@@ -232,6 +237,12 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 		return super.onOptionsItemSelected(item);
 	}
+
+    public static final String DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME = "Dont_Tell_ABout_Missing_Functionnality";
+    public SharedPreferences getDontTellAboutMissingFonctionnaliesPreferences() {
+        return dontTellAboutMissingFonctionnalies;
+    }
+
 
 //	public class NetworkListener extends BroadcastReceiver {
 //
