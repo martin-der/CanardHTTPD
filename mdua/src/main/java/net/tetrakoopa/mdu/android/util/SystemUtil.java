@@ -57,6 +57,9 @@ public class SystemUtil {
 		try { Thread.sleep(time); } catch (InterruptedException e) {}
 	}
 
+	public static Locale getCurrentLocale(Context context) {
+		return context.getResources().getConfiguration().locale;
+	}
 
 	public static String getFileName(Activity activity, Uri uri) {
 		String result = null;
