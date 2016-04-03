@@ -12,4 +12,6 @@ When a resource is shared via CanardHTTPD, a web server instance is spawn with t
 * Internet
 * Network State
 
+May be added
+* External Storage Read
 
