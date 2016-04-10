@@ -5,7 +5,7 @@ Canard HTTPD is an android application that allows to share resources using HTTP
 
 **Warning, this a application is in an alpha state**
 
-It quite works as expected but many functionnality as missing or buggy.
+It quite works as expected but many functionnalities are missing or buggy.
 
 ## How ?
 It uses [Jetty](http://www.eclipse.org/jetty/1) for all the HTTP hard work.
