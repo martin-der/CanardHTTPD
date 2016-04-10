@@ -32,6 +32,18 @@ public class CanardHTTPDService extends Service {
 	
 	private final static int NOTIFICATION_ID = 777;
 
+	private final static String EVENT_ID_SERVER_STOP = "net.tetrakoopa.canardHttpD.Service.STOP";
+	private final static String EVENT_ID_SERVER_KILL = "net.tetrakoopa.canardHttpD.Service.KILL";
+
+	private final static String INTEND_EXTRA_KEY_COMMAND = "COMMAND";
+	private final static Integer INTEND_EXTRA_COMMAND_UNDEFINED = 0;
+	private final static Integer INTEND_EXTRA_COMMAND_SERVER_STOP = 1;
+	private final static Integer INTEND_EXTRA_COMMAND_SERVER_KILL = 2;
+
+	private final static String MESSAGE_INTENT_EXTRA_COMMAND_KEY = "command";
+	private final static String MESSAGE_SERVER_STOP = "net.tetrakoopa.canardHttpD.Message.Service.SERVER_STOP";
+	private final static String MESSAGE_SERVER_KILL = "net.tetrakoopa.canardHttpD.Message.Service.SERVER_KILL";
+
 	private final IBinder binder = new LocalBinder();
 
 	private int requestedPort = 8080;
@@ -40,6 +52,8 @@ public class CanardHTTPDService extends Service {
 	private final SharesManager sharesManager = new SharesManager();
 
 	private CanardHTTPD server;
+
+	private Intent applicationIntent;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -58,6 +72,8 @@ public class CanardHTTPDService extends Service {
 	
 	@Override
 	public void onCreate() {
+		super.onCreate();
+		applicationIntent = new Intent(this, CanardHTTPDActivity.class);
 		Log.d(TAG, "onCreate");
 	}
 
@@ -65,11 +81,25 @@ public class CanardHTTPDService extends Service {
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
 	}
-	
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		
+
+		if (intent == null) {
+			return START_STICKY;
+		}
+
+		if (intent.getExtras() != null) {
+			final String command = intent.getExtras().getString(MESSAGE_INTENT_EXTRA_COMMAND_KEY);
+			if (command != null) {
+				if (command.equals(MESSAGE_SERVER_STOP)) {
+					//stopRecord();
+				} else if (command.equals(MESSAGE_SERVER_KILL)) {
+					stopHTTPDServer(null);
+				}
+			}
+		}
+
 		Log.d(TAG,"onStartCommand");
 
 		return START_STICKY;
@@ -83,15 +113,18 @@ public class CanardHTTPDService extends Service {
 		//((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
 		stopForeground(true);
 	}
-	private void showNotification(final Intent applicationIntent) {
+	private void showNotification() {
 
 		final String title = message(R.string.app_name);
 		final String text = message(R.string.server_status_no_download);
 		String info = ""+sharesManager.getThings().size()+" object(s)";
 
-		Intent deleteIntent = new Intent(this, NotificationEventReceiver.class);
-		PendingIntent pendingIntentStop = PendingIntent.getBroadcast(this, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-		PendingIntent pendingIntentKill = PendingIntent.getBroadcast(this, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		final Intent serverStopIntent = new Intent(this, NotificationEventReceiver.class);
+		serverStopIntent.putExtra(INTEND_EXTRA_KEY_COMMAND, INTEND_EXTRA_COMMAND_SERVER_STOP);
+		PendingIntent pendingIntentStop = PendingIntent.getBroadcast(this, 0, serverStopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		final Intent serverKillIntent = new Intent(this, NotificationEventReceiver.class);
+		serverKillIntent.putExtra(INTEND_EXTRA_KEY_COMMAND, INTEND_EXTRA_COMMAND_SERVER_KILL);
+		PendingIntent pendingIntentKill = PendingIntent.getBroadcast(this, 0, serverKillIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		Notification.Builder builder = new Notification.Builder(this);
 		builder.setContentTitle(title).setSmallIcon(R.mipmap.canard_httpd_server);
@@ -100,6 +133,7 @@ public class CanardHTTPDService extends Service {
 		builder.addAction(android.R.drawable.stat_sys_download_done, message(R.string.server_action_finish_then_stop), pendingIntentStop);
 		builder.addAction(android.R.drawable.ic_notification_clear_all, message(R.string.server_action_kill), pendingIntentKill);
 		Notification notification = builder.build();
+
 		notification.contentIntent = PendingIntent.getActivity(this, 0, applicationIntent, Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
 
 		//((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notification);
@@ -136,7 +170,7 @@ public class CanardHTTPDService extends Service {
 			Log.i(TAG, "HTTP Server : Up");
 			if (listener != null)
 				listener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.UP, null);
-			showNotification(new Intent(this, CanardHTTPDActivity.class));
+			showNotification();
 		} catch (Exception ex) {
 			server = null;
 			Log.e(TAG, "HTTP server : Start failed", ex);
@@ -157,9 +191,9 @@ public class CanardHTTPDService extends Service {
 		stopSelf();
 	}
 	private synchronized void stopHTTPDServer(ServerStatusChangeListener listener) {
-		if (!isServerSarted()) {
+		if (!isServerSarted())
 			return;
-		}
+
 		if (listener != null)
 			listener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.STOPING, null);
 
@@ -170,6 +204,7 @@ public class CanardHTTPDService extends Service {
 			Log.i(TAG, "Server Down");
 			if (listener != null)
 				listener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.DOWN, null);
+			removeNotification();
 		} catch (Exception ex) {
 			Log.e(TAG, "Stop server failed", ex);
 			if (listener != null)
@@ -190,8 +225,20 @@ public class CanardHTTPDService extends Service {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			Toast.makeText(context, "Clicked some button", Toast.LENGTH_SHORT).show();
+			final int command = intent.getIntExtra(INTEND_EXTRA_KEY_COMMAND, INTEND_EXTRA_COMMAND_UNDEFINED);
 
+			if (command == INTEND_EXTRA_COMMAND_SERVER_STOP) {
+				final Intent serviceIntent = new Intent(context, CanardHTTPDService.class);
+				serviceIntent.putExtra(MESSAGE_INTENT_EXTRA_COMMAND_KEY, MESSAGE_SERVER_STOP);
+				context.startService(serviceIntent);
+				return;
+			}
+			if (command == INTEND_EXTRA_COMMAND_SERVER_KILL) {
+				final Intent serviceIntent = new Intent(context, CanardHTTPDService.class);
+				serviceIntent.putExtra(MESSAGE_INTENT_EXTRA_COMMAND_KEY, MESSAGE_SERVER_KILL);
+				context.startService(serviceIntent);
+				return;
+			}
 		}
 	}
 }

@@ -56,6 +56,12 @@
                 android:value=".CanardHTTPDActivity" />
         </activity>
 
+		<receiver android:name=".CanardHTTPDService$NotificationEventReceiver" >
+			<intent-filter>
+				<action android:name="net.tetrakoopa.canardHttpD.Service.STOP" />
+				<action android:name="net.tetrakoopa.canardHttpD.Service.STOP" />
+			</intent-filter>
+		</receiver>
     </application>
 
 </manifest>
