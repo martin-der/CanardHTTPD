@@ -2,14 +2,17 @@ package net.tetrakoopa.canardhttpd;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -45,7 +48,8 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	private boolean needToCheckPickupActivityReturn;
 
 	private MainAction mainAction;
-	
+
+	private BroadcastReceiver receiver;
 
 
 	private CanardHTTPDService service;
@@ -86,6 +90,15 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 
 		SystemUIUtil.values_R.strings.dont_show_again = R.string.dont_show_again;
+
+		receiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				final int intStatus = intent.getIntExtra(CanardHTTPDService.MESSAGE_INTENT_SERVER_STATE_CHANGE_VALUE, -1);
+				final CanardHTTPDService.ServerStatus status = CanardHTTPDService.ServerStatus.fromOrdinal(intStatus);
+				updateUI(status);
+			}
+		};
 	}
 
 	private void copyDefaultCertificatToDir(String path) {
@@ -114,10 +127,19 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	@Override
 	public void onStart() {
 		super.onStart();
+		LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
+				new IntentFilter(CanardHTTPDService.MESSAGE_INTENT_SERVER_STATE_CHANGE)
+		);
 	}
 	@Override
 	public void onStop() {
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
 		super.onStop();
+	}
+
+	private void updateUI(CanardHTTPDService.ServerStatus serverStatus) {
+		mainAction.updateUI(serverStatus);
+
 	}
 
 	private void createService() {
@@ -148,6 +170,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 				if (ShareFeedUtil.tryAddFileToSharesElseNotify(CanardHTTPDActivity.this, getService().getSharesManager(), uriFromPickupActivityReturn))
 					mainAction.invalidateListe();
 			}
+			updateUI(binder.getService().isServerSarted() ? CanardHTTPDService.ServerStatus.UP : CanardHTTPDService.ServerStatus.DOWN);
 		}
 
 		@Override
@@ -193,7 +216,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		try {
 			startActivityForResult(intent, FILE_SELECT_CODE);
 		} catch (ActivityNotFoundException e) {
-			SystemUIUtil.showOKDialog(this, "!!!!", message(R.string.no_activity_for_picking_file_or_directory));
+			SystemUIUtil.showOKDialog(this, "Needed Application", message(R.string.no_activity_for_picking_file_or_directory));
 		}
 	}
 

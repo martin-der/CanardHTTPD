@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -44,6 +45,13 @@ public class CanardHTTPDService extends Service {
 	private final static String MESSAGE_SERVER_STOP = "net.tetrakoopa.canardHttpD.Message.Service.SERVER_STOP";
 	private final static String MESSAGE_SERVER_KILL = "net.tetrakoopa.canardHttpD.Message.Service.SERVER_KILL";
 
+	public final static String MESSAGE_INTENT_SERVER_STATE_CHANGE = "net.tetrakoopa.canardHttpD.Server.state.change";
+	public final static String MESSAGE_INTENT_SERVER_STATE_CHANGE_VALUE = "value";
+	public final static int MESSAGE_INTENT_SERVER_STATE_CHANGE_UP = ServerStatus.UP.ordinal();
+	public final static int MESSAGE_INTENT_SERVER_STATE_CHANGE_DOWN = ServerStatus.DOWN.ordinal();
+	public final static int MESSAGE_INTENT_SERVER_STATE_CHANGE_STARTING = ServerStatus.STARTING.ordinal();
+	public final static int MESSAGE_INTENT_SERVER_STATE_CHANGE_STOPING = ServerStatus.STOPING.ordinal();
+
 	private final IBinder binder = new LocalBinder();
 
 	private int requestedPort = 8080;
@@ -54,6 +62,16 @@ public class CanardHTTPDService extends Service {
 	private CanardHTTPD server;
 
 	private Intent applicationIntent;
+	private LocalBroadcastManager broadcaster;
+
+	private ServerStatusChangeListener localStatusChangeListener = new ServerStatusChangeListener() {
+		@Override
+		public void onServerStatusChange(CanardHTTPDService service, ActionTrigger actionTrigger, ServerStatus status, Throwable ex) {
+			final Intent intent = new Intent(MESSAGE_INTENT_SERVER_STATE_CHANGE);
+			intent.putExtra(MESSAGE_INTENT_SERVER_STATE_CHANGE_VALUE, status.ordinal());
+			broadcaster.sendBroadcast(intent);
+		}
+	};
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -74,6 +92,7 @@ public class CanardHTTPDService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		applicationIntent = new Intent(this, CanardHTTPDActivity.class);
+		broadcaster = LocalBroadcastManager.getInstance(this);
 		Log.d(TAG, "onCreate");
 	}
 
@@ -107,6 +126,13 @@ public class CanardHTTPDService extends Service {
 
 	public enum ServerStatus {
 		DOWN, STARTING, UP, STOPING;
+
+		public static ServerStatus fromOrdinal(int ordinal) {
+			if (ordinal<0 || ordinal>=ServerStatus.values().length) {
+				throw new IllegalArgumentException("No such "+ServerStatus.class.getName()+" with ordinal value "+ordinal);
+			}
+			return ServerStatus.values()[ordinal];
+		}
 	}
 
 	private void removeNotification() {
@@ -159,6 +185,7 @@ public class CanardHTTPDService extends Service {
 	}
 	private synchronized void startServer(ServerStatusChangeListener listener, CanardHTTPDActivity canardHTTPDActivity) {
 
+		localStatusChangeListener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.STARTING, null);
 		if (listener != null)
 			listener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.STARTING, null);
 		try {
@@ -168,12 +195,14 @@ public class CanardHTTPDService extends Service {
 			server.start();
 			//server.join();
 			Log.i(TAG, "HTTP Server : Up");
+			localStatusChangeListener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.UP, null);
 			if (listener != null)
 				listener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.UP, null);
 			showNotification();
 		} catch (Exception ex) {
 			server = null;
 			Log.e(TAG, "HTTP server : Start failed", ex);
+			localStatusChangeListener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.DOWN, null);
 			if (listener != null)
 				listener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.DOWN, ex);
 		}
@@ -194,6 +223,7 @@ public class CanardHTTPDService extends Service {
 		if (!isServerSarted())
 			return;
 
+		localStatusChangeListener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.STOPING, null);
 		if (listener != null)
 			listener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.STOPING, null);
 
@@ -202,11 +232,13 @@ public class CanardHTTPDService extends Service {
 			server.join();
 			server = null;
 			Log.i(TAG, "Server Down");
+			localStatusChangeListener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.DOWN, null);
 			if (listener != null)
 				listener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.DOWN, null);
 			removeNotification();
 		} catch (Exception ex) {
 			Log.e(TAG, "Stop server failed", ex);
+			localStatusChangeListener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.DOWN, null);
 			if (listener != null)
 				listener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.DOWN, ex);
 		}

@@ -171,6 +171,41 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		for (View view : views)
 			view.setEnabled(enabled);
 	}
+	public void updateUI(ServerStatus status) {
+		switch (status) {
+			case STARTING:
+				toggleServerButton.setEnabled(false);
+				statusTextView.setText(message(R.string.domain_server_status_starting));
+				publicInfoTextView.setText(message(R.string.domain_server_status_running));
+				enableViews(serverDependentViews, false);
+				break;
+			case UP:
+				toggleServerButton.setEnabled(true);
+				toggleServerButton.setText(R.string.BUTTON_server_stop);
+				statusTextView.setText(message(R.string.domain_server_status_running));
+				final String serverInfo = getServerIndexURL();
+				publicInfoTextView.setText(serverInfo);
+				enableViews(serverDependentViews, true);
+				break;
+			case STOPING:
+				toggleServerButton.setEnabled(false);
+				statusTextView.setText(message(R.string.domain_server_status_halting));
+				publicInfoTextView.setText("");
+				enableViews(serverDependentViews, false);
+				break;
+			case DOWN:
+				toggleServerButton.setEnabled(true);
+				toggleServerButton.setText(R.string.BUTTON_server_start);
+				statusTextView.setText(message(R.string.domain_server_status_stopped));
+				publicInfoTextView.setText("");
+				enableViews(serverDependentViews, false);
+				break;
+			default:
+				publicInfoTextView.setText("");
+				statusTextView.setText(message(R.string.domain_server_status_unknown));
+				enableViews(serverDependentViews, false);
+		}
+	}
 
 	public class ServerChangeListener implements ServerStatusChangeListener {
 
@@ -195,44 +230,25 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 				SystemUIUtil.showOKDialog(MainAction.this.activity(), message(triggeringAction == null ? R.string.error_failed_server_unknown_operation : getActionTriggerMessageResource(triggeringAction)), message);
 			}
 
+			updateUI(status);
+
 			switch (status) {
 			case STARTING:
-				toggleServerButton.setEnabled(false);
-				statusTextView.setText(message(R.string.domain_server_status_starting));
-				publicInfoTextView.setText(message(R.string.domain_server_status_running));
-				enableViews(serverDependentViews, false);
 				break;
 			case UP:
-				toggleServerButton.setEnabled(true);
-				toggleServerButton.setText(R.string.BUTTON_server_stop);
-				statusTextView.setText(message(R.string.domain_server_status_running));
-				String serverInfo = getServerIndexURL();
-				publicInfoTextView.setText(serverInfo);
-				enableViews(serverDependentViews, true);
 				if (notifyServerWentUpDown) {
+					final String serverInfo = getServerIndexURL();
 					Toast.makeText(MainAction.this.activity(), message(R.string.notification_server_running_on) + " " + serverInfo, Toast.LENGTH_LONG).show();
 				}
 				break;
 			case STOPING:
-				toggleServerButton.setEnabled(false);
-				statusTextView.setText(message(R.string.domain_server_status_halting));
-				publicInfoTextView.setText("");
-				enableViews(serverDependentViews, false);
 				break;
 			case DOWN:
-				toggleServerButton.setEnabled(true);
-				toggleServerButton.setText(R.string.BUTTON_server_start);
-				statusTextView.setText(message(R.string.domain_server_status_stopped));
-				publicInfoTextView.setText("");
-				enableViews(serverDependentViews, false);
 				if (notifyServerWentUpDown) {
 					Toast.makeText(MainAction.this.activity(), message(R.string.notification_server_stopped), Toast.LENGTH_LONG).show();
 				}
 				break;
 			default:
-				publicInfoTextView.setText("");
-				statusTextView.setText(message(R.string.domain_server_status_unknown));
-				enableViews(serverDependentViews, false);
 				Log.e(CanardHTTPDActivity.TAG, "CanardHTTPD has an unknown status : " + status.name() + "!!\nCan you believe it?");
 			}
 		}
