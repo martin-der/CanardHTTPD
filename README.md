@@ -1,6 +1,6 @@
 # Canard HTTPD
 
-Canard HTTPD is an android application that allows to share resources using HTTP.
+Canard HTTPD is an android application that allows to share resources using HTTP.![CanardHTTPD Icon](https://raw.githubusercontent.com/martin-der/CanardHTTPD/master/src/main/res/mipmap-mdpi/canard_httpd_main.png "CanardHTTPD Icon")
 
 
 **Warning, this a application is in an alpha state**
