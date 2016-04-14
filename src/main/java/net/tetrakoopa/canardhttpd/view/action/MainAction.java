@@ -8,15 +8,19 @@ import android.os.IBinder;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +40,7 @@ import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
 import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
+import net.tetrakoopa.mdu.util.ExceptionUtil;
 import net.tetrakoopa.mdua.util.ContractuelUtil;
 import net.tetrakoopa.mdua.util.NetworkUtil;
 import net.tetrakoopa.mdua.util.SystemUtil;
@@ -48,8 +53,8 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 
 	private ImageButton aboutButton;
 
-	private Button toggleServerButton;
-	private TextView statusTextView;
+	private CompoundButton toggleServerButton;
+	//private TextView statusTextView;
 	private TextView publicInfoTextView;
 
 	private Button logButton;
@@ -79,7 +84,6 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	@Override
 	protected void internalLayout(View parentView) {
 
-		statusTextView = (TextView) parentView.findViewById(R.id.server_status);
 		publicInfoTextView = (TextView) parentView.findViewById(R.id.server_public_info);
 
 		aboutButton = (ImageButton) parentView.findViewById(R.id.about);
@@ -95,21 +99,6 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 			@Override
 			public void onClick(View arg0) {
 				SystemUtil.shareText(MainAction.this.activity(), MainAction.this.message(R.string.title_share_server_info), MainAction.this.getServerIndexURL());
-			}
-		});
-
-
-		toggleServerButton = (Button) parentView.findViewById(R.id.action_server_toogle);
-		toggleServerButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View arg0) {
-				if (service().isServerSarted()) {
-					service().stop(serverChangeListener);
-				}
-				else {
-					service().start(MainAction.this.activityIntent(), activity(),  serverChangeListener);
-				}
 			}
 		});
 
@@ -175,36 +164,46 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		switch (status) {
 			case STARTING:
 				toggleServerButton.setEnabled(false);
-				statusTextView.setText(message(R.string.domain_server_status_starting));
+				//statusTextView.setText(message(R.string.domain_server_status_starting));
 				publicInfoTextView.setText(message(R.string.domain_server_status_running));
 				enableViews(serverDependentViews, false);
 				break;
 			case UP:
 				toggleServerButton.setEnabled(true);
-				toggleServerButton.setText(R.string.BUTTON_server_stop);
-				statusTextView.setText(message(R.string.domain_server_status_running));
+				toggleServerButton.setChecked(true);
+				//toggleServerButton.setText(R.string.BUTTON_server_stop);
+				//statusTextView.setText(message(R.string.domain_server_status_running));
 				final String serverInfo = getServerIndexURL();
 				publicInfoTextView.setText(serverInfo);
 				enableViews(serverDependentViews, true);
 				break;
 			case STOPING:
 				toggleServerButton.setEnabled(false);
-				statusTextView.setText(message(R.string.domain_server_status_halting));
+				//statusTextView.setText(message(R.string.domain_server_status_halting));
 				publicInfoTextView.setText("");
 				enableViews(serverDependentViews, false);
 				break;
 			case DOWN:
 				toggleServerButton.setEnabled(true);
-				toggleServerButton.setText(R.string.BUTTON_server_start);
-				statusTextView.setText(message(R.string.domain_server_status_stopped));
+				toggleServerButton.setChecked(false);
+				//toggleServerButton.setText(R.string.BUTTON_server_start);
+				//statusTextView.setText(message(R.string.domain_server_status_stopped));
 				publicInfoTextView.setText("");
 				enableViews(serverDependentViews, false);
 				break;
 			default:
 				publicInfoTextView.setText("");
-				statusTextView.setText(message(R.string.domain_server_status_unknown));
+				//statusTextView.setText(message(R.string.domain_server_status_unknown));
 				enableViews(serverDependentViews, false);
 		}
+	}
+
+	public void setMenu(Menu menu) {
+		MenuItem item = menu.findItem(R.id.menu_server_toggle);
+		item.setActionView(R.layout.main_switch);
+		View view = item.getActionView();
+		toggleServerButton = (CompoundButton)view.findViewById(R.id.action_server_toogle_menu);
+		toggleServerButton.setOnCheckedChangeListener(serverSwitchListener);
 	}
 
 	public class ServerChangeListener implements ServerStatusChangeListener {
@@ -220,14 +219,13 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 			
 			if (ex != null) {
 				final String messageExplain;
-				final String exClassName = ex.getClass().getName();
 				if (ex instanceof java.net.BindException) {
 					messageExplain = message(R.string.error_explain__could_not_bind);
 				} else {
 					messageExplain = message(R.string.error_explain__error_unknown_server_error);
 				}
-				String message = messageExplain + "\n\n" + exClassName + "\n" + ex.getLocalizedMessage();
-				SystemUIUtil.showOKDialog(MainAction.this.activity(), message(triggeringAction == null ? R.string.error_failed_server_unknown_operation : getActionTriggerMessageResource(triggeringAction)), message);
+				final String msg = messageExplain + "\n\n" + ExceptionUtil.getMessages(ex, true);
+				SystemUIUtil.showOKDialog(MainAction.this.activity(), message(triggeringAction == null ? R.string.error_failed_server_unknown_operation : getActionTriggerMessageResource(triggeringAction)), msg);
 			}
 
 			updateUI(status);
@@ -261,7 +259,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 			case STATUS : return R.string.error_failed_server_status;
 			case DISCONNECTION : return R.string.error_server_disconnection;
 		}
-		throw new IllegalArgumentException("No nuch ServerStatusChangeListener.ActionTrigger'"+trigger+"'");
+		throw new IllegalArgumentException("No such ServerStatusChangeListener.ActionTrigger'"+trigger+"'");
 	}
 
 	public class SharedThingAdapter extends ArrayAdapter<SharedThing> {
@@ -417,5 +415,16 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	public void invalidateListe() {
 		sharedThingAdapter.notifyDataSetInvalidated();
 	}
+
+	private CompoundButton.OnCheckedChangeListener serverSwitchListener = new CompoundButton.OnCheckedChangeListener() {
+		@Override
+		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+			if (isChecked) {
+				service().start(MainAction.this.activityIntent(), activity(), serverChangeListener);
+			} else {
+				service().stop(serverChangeListener);
+			}
+		}
+	};
 
 }

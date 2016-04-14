@@ -1,6 +1,5 @@
 package net.tetrakoopa.canardhttpd;
 
-import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -18,10 +17,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Switch;
 import android.widget.Toast;
 
-import net.tetrakoopa.canardhttpd.CanardHTTPDService;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
 import net.tetrakoopa.canardhttpd.view.action.MainAction;
@@ -49,8 +46,20 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	private MainAction mainAction;
 
-	private BroadcastReceiver receiver;
-
+	private final BroadcastReceiver receiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			final int intStatus = intent.getIntExtra(CanardHTTPDService.MESSAGE_INTENT_SERVER_STATE_CHANGE_VALUE, -1);
+			final CanardHTTPDService.ServerStatus status;
+			try {
+				status = CanardHTTPDService.ServerStatus.fromOrdinal(intStatus);
+			} catch (IllegalArgumentException iaex) {
+				Log.w(TAG,"Received a illegal  server status : '"+CanardHTTPDService.MESSAGE_INTENT_SERVER_STATE_CHANGE_VALUE+":"+intStatus+"'");
+				return;
+			}
+			updateUI(status);
+		}
+	};
 
 	private CanardHTTPDService service;
 	private boolean serviceBound = false;
@@ -75,8 +84,6 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		mainAction = new MainAction(this, savedInstanceState, mainView);
 		mainAction.doPrepareLayoutAndStuff();
 
-        //Switch serverSwitch = (Switch)menu.findItem(R.id.server_switch).getActionView().findViewById(R.id.switchForActionBar);
-
 
         final ContractuelUtil.PreferenceSavingAndActivityClosingAcceptanceResponse eulaResponseHandler = new ContractuelUtil.PreferenceSavingAndActivityClosingAcceptanceResponse(this, "legal", "eula.accepted");
 		ContractuelUtil.showForAcceptanceIfNeeded(this, eulaResponseHandler, "legal/apache-licence-2.0.html", R.string.misc_eula_title, android.R.string.yes, android.R.string.no);
@@ -86,19 +93,10 @@ public class CanardHTTPDActivity extends AppCompatActivity {
         dontTellAboutMissingFonctionnalies = getApplicationContext().getSharedPreferences(DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME, Context.MODE_PRIVATE);
 
 
-        createService();
 
 
 		SystemUIUtil.values_R.strings.dont_show_again = R.string.dont_show_again;
 
-		receiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				final int intStatus = intent.getIntExtra(CanardHTTPDService.MESSAGE_INTENT_SERVER_STATE_CHANGE_VALUE, -1);
-				final CanardHTTPDService.ServerStatus status = CanardHTTPDService.ServerStatus.fromOrdinal(intStatus);
-				updateUI(status);
-			}
-		};
 	}
 
 	private void copyDefaultCertificatToDir(String path) {
@@ -111,17 +109,29 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Log.d(TAG, "unbindService ");
-		unbindService(connection);
-		//stopService(intent);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.canard_httpd, menu);
 
-		return true;
+		MenuItem item = menu.findItem(R.id.menu_server_toggle);
+		item.setActionView(R.layout.main_switch);
+
+		mainAction.setMenu(menu);
+
+		bindHTTPService();
+
+		/*final MenuItem toggleservice = menu.findItem(R.id.toggleservice);
+		final Switch actionView = (Switch) toggleservice.getActionView();
+		actionView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				Toast.makeText(CanardHTTPDActivity.this, "Switch : " + isChecked, Toast.LENGTH_SHORT).show();
+			}
+		});*/
+
+		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
@@ -133,6 +143,9 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	}
 	@Override
 	public void onStop() {
+		Log.d(TAG, "unbindService ");
+		unbindHTTPService();
+		//stopService(intent);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
 		super.onStop();
 	}
@@ -142,12 +155,15 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	}
 
-	private void createService() {
+	private void bindHTTPService() {
 		final Intent intent = new Intent(this, CanardHTTPDService.class);
 		Log.d(TAG, "bindService ");
 		bindService(intent, connection, Context.BIND_AUTO_CREATE);
 		Log.d(TAG, "bindService done");
 		startService(intent);
+	}
+	private void unbindHTTPService() {
+		unbindService(connection);
 	}
 
 

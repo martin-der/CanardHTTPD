@@ -1,9 +1,7 @@
 package net.tetrakoopa.canardhttpd;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -14,13 +12,13 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener.ActionTrigger;
-import net.tetrakoopa.canardhttpd.listener.HTTPServerCancelReceiver;
 import net.tetrakoopa.canardhttpd.service.http.CanardHTTPD;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
+import net.tetrakoopa.mdu.util.ExceptionUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
+
 
 
 
@@ -47,10 +45,7 @@ public class CanardHTTPDService extends Service {
 
 	public final static String MESSAGE_INTENT_SERVER_STATE_CHANGE = "net.tetrakoopa.canardHttpD.Server.state.change";
 	public final static String MESSAGE_INTENT_SERVER_STATE_CHANGE_VALUE = "value";
-	public final static int MESSAGE_INTENT_SERVER_STATE_CHANGE_UP = ServerStatus.UP.ordinal();
-	public final static int MESSAGE_INTENT_SERVER_STATE_CHANGE_DOWN = ServerStatus.DOWN.ordinal();
-	public final static int MESSAGE_INTENT_SERVER_STATE_CHANGE_STARTING = ServerStatus.STARTING.ordinal();
-	public final static int MESSAGE_INTENT_SERVER_STATE_CHANGE_STOPING = ServerStatus.STOPING.ordinal();
+	public final static String MESSAGE_INTENT_SERVER_STATE_CHANGE_ERROR = "error";
 
 	private final IBinder binder = new LocalBinder();
 
@@ -69,6 +64,9 @@ public class CanardHTTPDService extends Service {
 		public void onServerStatusChange(CanardHTTPDService service, ActionTrigger actionTrigger, ServerStatus status, Throwable ex) {
 			final Intent intent = new Intent(MESSAGE_INTENT_SERVER_STATE_CHANGE);
 			intent.putExtra(MESSAGE_INTENT_SERVER_STATE_CHANGE_VALUE, status.ordinal());
+			if (ex != null) {
+				intent.putExtra(MESSAGE_INTENT_SERVER_STATE_CHANGE_ERROR, ExceptionUtil.getMessages(ex));
+			}
 			broadcaster.sendBroadcast(intent);
 		}
 	};
@@ -160,7 +158,7 @@ public class CanardHTTPDService extends Service {
 		builder.addAction(android.R.drawable.ic_notification_clear_all, message(R.string.server_action_kill), pendingIntentKill);
 		Notification notification = builder.build();
 
-		notification.contentIntent = PendingIntent.getActivity(this, 0, applicationIntent, Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+		notification.contentIntent = PendingIntent.getActivity(this, 0, applicationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		//((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notification);
 		startForeground(NOTIFICATION_ID, notification);
@@ -220,8 +218,9 @@ public class CanardHTTPDService extends Service {
 		stopSelf();
 	}
 	private synchronized void stopHTTPDServer(ServerStatusChangeListener listener) {
-		if (!isServerSarted())
+		if (!isServerSarted()) {
 			return;
+		}
 
 		localStatusChangeListener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.STOPING, null);
 		if (listener != null)

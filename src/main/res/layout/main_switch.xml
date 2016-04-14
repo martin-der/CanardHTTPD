@@ -4,10 +4,14 @@
     android:layout_height="match_parent"
     android:orientation="horizontal" >
 
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/switchForActionBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="HTTPD" />
+	<!--android.support.v7.widget.SwitchCompat
+		android:id="@+id/action_server_toogle_menu"
+		android:layout_width="wrap_content"
+		android:layout_height="fill_parent" /-->
+	<Switch
+		android:id="@+id/action_server_toogle_menu"
+		android:layout_width="wrap_content"
+		android:layout_height="fill_parent"/>
+	<!--android:text="@string/BUTTON_server_start" -->
 
 </RelativeLayout>

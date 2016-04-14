@@ -1,11 +1,26 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" >
 
-    <item
+    <android.support.v7.widget.SwitchCompat
         android:id="@+id/server_switch"
-        android:title="HTTPD"
-		android:checkable="true"
+        android:title=""
 		android:actionLayout="@layout/main_switch"
+		app:showAsAction="always"
         />
+
+	<item android:id="@+id/menu_server_toggle"
+		  android:actionLayout="@layout/main_switch"
+		  android:icon="@mipmap/canard_httpd_main"
+		  app:showAsAction="always"/>
+
+	<!--android.support.v7.widget.SwitchCompat
+		android:id="@+id/switchForActionBar"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		app:showAsAction="always"
+		android:icon="@mipmap/canard_httpd_main"
+		android:text="HTTPD" /-->
+
+
 	<!--
 		app:showAsAction="always"
 	-->

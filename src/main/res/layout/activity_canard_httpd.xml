@@ -11,38 +11,6 @@
         android:orientation="vertical" >
 
 		<LinearLayout
-	        android:orientation="horizontal"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:gravity="left">
-	
-	        <Button
-	            android:id="@+id/action_server_toogle"
-	            android:layout_width="wrap_content"
-	            android:layout_height="fill_parent"
-	            android:text="@string/BUTTON_server_start" />
-
-			<LinearLayout
-		        android:orientation="horizontal"
-		        android:layout_width="fill_parent"
-		        android:layout_height="fill_parent">
-		
-		        <TextView
-		            android:id="@+id/server_status"
-		            android:layout_width="fill_parent"
-		            android:layout_height="fill_parent"
-		            android:gravity="center"
-		            android:shadowColor="@android:color/holo_orange_dark"
-		            android:shadowDx="2"
-		            android:shadowDy="5"
-		            android:shadowRadius="13"
-		            android:text="@string/domain_server_status_stopped"
-		            android:textAppearance="?android:attr/textAppearanceLarge" />
-	
-	    	</LinearLayout>
-	    </LinearLayout>
-	
-		<LinearLayout
 		    android:layout_width="fill_parent"
 		    android:layout_height="wrap_content"
 		    android:gravity="right"
