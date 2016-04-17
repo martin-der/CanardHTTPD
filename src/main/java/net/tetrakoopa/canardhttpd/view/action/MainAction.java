@@ -419,11 +419,11 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	private CompoundButton.OnCheckedChangeListener serverSwitchListener = new CompoundButton.OnCheckedChangeListener() {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-			if (isChecked) {
-				service().start(MainAction.this.activityIntent(), activity(), serverChangeListener);
-			} else {
-				service().stop(serverChangeListener);
-			}
+		if (isChecked) {
+			service().start(MainAction.this.activityIntent(), activity(), serverChangeListener);
+		} else {
+			service().stop(serverChangeListener);
+		}
 		}
 	};
 
