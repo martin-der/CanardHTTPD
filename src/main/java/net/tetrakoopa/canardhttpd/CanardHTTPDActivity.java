@@ -62,7 +62,15 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	};
 
 	private CanardHTTPDService service;
-	private boolean serviceBound = false;
+	private boolean uiReady = false;
+	private final ServiceExtra serviceExtra = new ServiceExtra() {
+
+	};
+
+	private static class ServiceExtra {
+		ComponentName componentName;
+		IBinder serviceBinder;
+	}
 
 	private Uri uriFromPickupActivityReturn;
 
@@ -79,6 +87,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		setContentView(R.layout.activity_canard_httpd);
 
 		final View mainView = findViewById(R.id.main);
+
 
 
 		mainAction = new MainAction(this, savedInstanceState, mainView);
@@ -120,8 +129,6 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 		mainAction.setMenu(menu);
 
-		bindHTTPService();
-
 		/*final MenuItem toggleservice = menu.findItem(R.id.toggleservice);
 		final Switch actionView = (Switch) toggleservice.getActionView();
 		actionView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -131,19 +138,26 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 			}
 		});*/
 
+		if (service != null) {
+			updateUI(service.isServerSarted() ? CanardHTTPDService.ServerStatus.UP : CanardHTTPDService.ServerStatus.DOWN);
+		}
+		uiReady = true;
+
 		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
 	public void onStart() {
 		super.onStart();
+
+		bindHTTPService();
+
 		LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
 				new IntentFilter(CanardHTTPDService.MESSAGE_INTENT_SERVER_STATE_CHANGE)
 		);
 	}
 	@Override
 	public void onStop() {
-		Log.d(TAG, "unbindService ");
 		unbindHTTPService();
 		//stopService(intent);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
@@ -152,30 +166,30 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	private void updateUI(CanardHTTPDService.ServerStatus serverStatus) {
 		mainAction.updateUI(serverStatus);
-
+		mainAction.onServiceConnected(serviceExtra.componentName, serviceExtra.serviceBinder);
 	}
 
 	private void bindHTTPService() {
 		final Intent intent = new Intent(this, CanardHTTPDService.class);
-		Log.d(TAG, "bindService ");
+		Log.d(TAG, "bind HTTPService");
 		bindService(intent, connection, Context.BIND_AUTO_CREATE);
-		Log.d(TAG, "bindService done");
+		Log.d(TAG, "HTTPService binded");
 		startService(intent);
 	}
 	private void unbindHTTPService() {
+		Log.d(TAG, "unbind HTTPService");
 		unbindService(connection);
+		Log.d(TAG, "HTTPService unbinded");
 	}
-
 
     private final ServiceConnection connection = new ServiceConnection() {
 
 		@Override
 		public void onServiceConnected(ComponentName componentName, IBinder serviceBinder) {
 
-            CanardHTTPDService.LocalBinder binder = (CanardHTTPDService.LocalBinder) serviceBinder;
-			CanardHTTPDActivity.this.service = binder.getService();
-			serviceBound = true;
-			mainAction.onServiceConnected(componentName, serviceBinder);
+			CanardHTTPDActivity.this.service = ((CanardHTTPDService.LocalBinder) serviceBinder).getService();
+			serviceExtra.componentName = componentName;
+			serviceExtra.serviceBinder = serviceBinder;
 
 			if (intentParametersNeedToBeChecked) {
 				intentParametersNeedToBeChecked = false;
@@ -186,7 +200,11 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 				if (ShareFeedUtil.tryAddFileToSharesElseNotify(CanardHTTPDActivity.this, getService().getSharesManager(), uriFromPickupActivityReturn))
 					mainAction.invalidateListe();
 			}
-			updateUI(binder.getService().isServerSarted() ? CanardHTTPDService.ServerStatus.UP : CanardHTTPDService.ServerStatus.DOWN);
+
+			if (uiReady) {
+				mainAction.onServiceConnected(componentName, serviceBinder);
+				updateUI(CanardHTTPDActivity.this.service.isServerSarted() ? CanardHTTPDService.ServerStatus.UP : CanardHTTPDService.ServerStatus.DOWN);
+			}
 		}
 
 		@Override
@@ -243,7 +261,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 			if (resultCode == RESULT_OK && data != null) {
 				try {
 					final Uri uri = data.getData();
-					if (serviceBound) {
+					if (this.service != null) {
 						if (ShareFeedUtil.tryAddFileToSharesElseNotify(this, getService().getSharesManager(), uri)) {
 							mainAction.updateSharedThingsList();
 						}
