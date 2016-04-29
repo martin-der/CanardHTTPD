@@ -49,6 +49,10 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	private MainAction mainAction;
 
+	MenuItem showActivityMenu;
+	MenuItem showLogMenu;
+
+
 	private final BroadcastReceiver receiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -132,6 +136,9 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		MenuItem item = menu.findItem(R.id.menu_server_toggle);
 		item.setActionView(R.layout.main_switch);
 
+		showActivityMenu = menu.findItem(R.id.action_menu_show_activity);
+		showLogMenu = menu.findItem(R.id.action_menu_show_activity);
+
 		mainAction.setMenu(menu);
 
 		/*final MenuItem toggleservice = menu.findItem(R.id.toggleservice);
@@ -173,6 +180,8 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	private void updateUI(CanardHTTPDService.ServerStatus serverStatus) {
 		mainAction.onServiceConnected(serviceExtra.componentName, serviceExtra.serviceBinder);
+		showActivityMenu.setEnabled(serverStatus == CanardHTTPDService.ServerStatus.UP);
+		showLogMenu.setEnabled(serverStatus == CanardHTTPDService.ServerStatus.UP);
 	}
 
 	private void bindHTTPService() {
@@ -307,14 +316,14 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 			return true;
 		}
 
-        /*if (id==R.id.action_menu_show_activity) {
-            startActivity(new Intent(this, ActivityActivity.class), savedInstanceState);
+        if (id==R.id.action_menu_show_activity) {
+            startActivity(new Intent(this, MonitoringActivity.class), savedInstanceState);
             return true;
         }
 		if (id==R.id.action_menu_show_log) {
 			startActivity(new Intent(this, LogActivity.class), savedInstanceState);
 			return true;
-		}*/
+		}
 
 
 		//noinspection SimplifiableIfStatement
