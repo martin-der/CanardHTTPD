@@ -57,6 +57,15 @@
                 android:value=".CanardHTTPDActivity" />
         </activity>
 
+		<activity
+			android:name=".MonitoringActivity"
+			android:label="Log"
+			android:parentActivityName=".CanardHTTPDActivity">
+			<meta-data
+				android:name="android.support.PARENT_ACTIVITY"
+				android:value=".CanardHTTPDActivity" />
+		</activity>
+
 		<receiver android:name=".CanardHTTPDService$ConnectionChangeReceiver"
 				  android:label="NetworkConnection">
 			<intent-filter>
