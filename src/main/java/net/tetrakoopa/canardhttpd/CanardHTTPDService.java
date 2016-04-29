@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
@@ -17,9 +18,10 @@ import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener.
 import net.tetrakoopa.canardhttpd.service.http.CanardHTTPD;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.mdu.util.ExceptionUtil;
+import net.tetrakoopa.mdua.util.NetworkUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
 
-
+import java.net.SocketException;
 
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -28,7 +30,7 @@ public class CanardHTTPDService extends Service {
 	public final static String MANIFEST_ACTIVITY = CanardHTTPDActivity.MANIFEST_PACKAGE+".CanardHTTPDService";
 
 	public final static String TAG = "CanardHTTPDService";
-	
+
 	private final static int NOTIFICATION_ID = 777;
 
 	private final static String EVENT_ID_SERVER_STOP = "net.tetrakoopa.canardHttpD.Service.STOP";
@@ -59,6 +61,9 @@ public class CanardHTTPDService extends Service {
 	private Intent applicationIntent;
 	private LocalBroadcastManager broadcaster;
 
+	private String externalIp;
+	private FindIPTask findIPTask;
+
 	private ServerStatusChangeListener localStatusChangeListener = new ServerStatusChangeListener() {
 		@Override
 		public void onServerStatusChange(CanardHTTPDService service, ActionTrigger actionTrigger, ServerStatus status, Throwable ex) {
@@ -85,13 +90,18 @@ public class CanardHTTPDService extends Service {
 	public SharesManager getSharesManager() {
 		return sharesManager;
 	}
-	
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		applicationIntent = new Intent(this, CanardHTTPDActivity.class);
 		broadcaster = LocalBroadcastManager.getInstance(this);
 		Log.d(TAG, "onCreate");
+
+		if (externalIp == null && findIPTask==null) {
+			findIPTask = new FindIPTask();
+			findIPTask.execute();
+		}
 	}
 
 	@Override
@@ -137,6 +147,7 @@ public class CanardHTTPDService extends Service {
 		//((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
 		stopForeground(true);
 	}
+
 	private void showNotification() {
 
 		final String title = message(R.string.app_name);
@@ -168,7 +179,7 @@ public class CanardHTTPDService extends Service {
 	public interface ServerStatusChangeListener {
 		enum ActionTrigger {
 			START, STOP, STATUS, DISCONNECTION;
-		};
+		}
 
 		void onServerStatusChange(CanardHTTPDService service, ActionTrigger actionTrigger, ServerStatus status, Throwable ex);
 	}
@@ -181,6 +192,7 @@ public class CanardHTTPDService extends Service {
 		super.startService(intent);
 		startServer(listener, canardHTTPDActivity);
 	}
+
 	private synchronized void startServer(ServerStatusChangeListener listener, CanardHTTPDActivity canardHTTPDActivity) {
 
 		localStatusChangeListener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.STARTING, null);
@@ -217,6 +229,7 @@ public class CanardHTTPDService extends Service {
 		}
 		stopSelf();
 	}
+
 	private synchronized void stopHTTPDServer(ServerStatusChangeListener listener) {
 		if (!isServerSarted()) {
 			return;
@@ -247,6 +260,55 @@ public class CanardHTTPDService extends Service {
 		return server == null ? requestedPort : server.getPort(0);
 	}
 
+	public class FindIPTask extends AsyncTask<Void, Integer, String> {
+
+		protected final int providersCount = NetworkUtil.SOME_IP_PROVIDERS.length + 1;
+
+		protected void onPreExecute(String ip) {
+			CanardHTTPDService.this.externalIp = null;
+		}
+
+		protected String doInBackground(Void... voids) {
+
+			String ip;
+			int providerIndex = 0;
+
+			try {
+				for (NetworkUtil.ExternalIPProvider provider : NetworkUtil.SOME_IP_PROVIDERS) {
+					if (isCancelled()) {
+						Log.d(TAG, "Search of External IP was cancelled");
+					}
+					publishProgress(providerIndex++);
+					ip = provider.getIP();
+					if (ip != null)
+						return ip;
+					if (isCancelled())
+						return null;
+				}
+			} catch (Exception ex) {
+				Log.w(TAG, "Failed to retreive IP using external provider : "+ExceptionUtil.getMessages(ex));
+			}
+
+			providerIndex = NetworkUtil.SOME_IP_PROVIDERS.length;
+			publishProgress(providerIndex);
+			try {
+				ip = NetworkUtil.getIPAddress(true);
+				if (ip != null)
+					return ip;
+			} catch (SocketException sex) {
+				Log.w(TAG, "Failed to retreive IP : "+ExceptionUtil.getMessages(sex));
+			}
+
+			return null;
+		}
+
+		protected void onPostExecute(String ip) {
+			CanardHTTPDService.this.externalIp = ip;
+			CanardHTTPDService.this.findIPTask = null;
+			Log.i(TAG, "Found external ip : " + ip);
+		}
+
+	}
 
 	private String message(int id) {
 		return ResourcesUtil.getString(this, id);
@@ -272,4 +334,8 @@ public class CanardHTTPDService extends Service {
 			}
 		}
 	}
+
+	public String getExternalIp() {
+		return externalIp;
+	};
 }
