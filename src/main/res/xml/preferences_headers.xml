@@ -10,6 +10,10 @@
 		android:fragment="net.tetrakoopa.canardhttpd.preference.ServerAccessPreferencesFragment"
 		android:title="@string/preferences_server_access"
 		android:summary="@string/explain_preferences_server_access" />
-		android:summary="@string/explain_preferences_output" />
+
+	<header
+		android:fragment="net.tetrakoopa.canardhttpd.preference.ShareIntentPreferencesFragment"
+		android:title="@string/preferences_share_intent"
+		android:summary="@string/explain_preferences_share_intent" />
 
 </preference-headers>

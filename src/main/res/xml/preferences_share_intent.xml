@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<PreferenceCategory
+		android:title="@string/preferences_main_ui">
+
+		<CheckBoxPreference
+			android:key="share_intent.show_main_ui"
+			android:title="@string/preferences_share_show_main_ui"
+			android:summary="@string/explain_preferences_share_show_main_ui"/>
+
+		<CheckBoxPreference
+			android:key="share_intent.automatic_file_sharing"
+			android:title="@string/preferences_share_publish_file_automatically"
+			android:summary="@string/explain_preferences_share_publish_file_automatically"/>
+
+		<CheckBoxPreference
+			android:key="share_intent.automatic_text_sharing"
+			android:title="@string/preferences_share_publish_text_automatically"
+			android:summary="@string/explain_preferences_share_publish_text_automatically"/>
+
+	</PreferenceCategory>
+
+</PreferenceScreen>

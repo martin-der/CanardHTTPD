@@ -103,5 +103,19 @@
 	<string name="preferences_find_out_external_ip">Find out external IP</string>
 	<string name="explain_preferences_find_out_external_ip">Try to find out the external IP of your phone. It will requiere you device to have access to internet.</string>
 
+	<!-- Share Intent -->
+
+	<string name="preferences_share_intent">Share Action</string>
+	<string name="explain_preferences_share_intent">Preferences when called as a share action</string>
+
+	<string name="preferences_share_show_main_ui">Show main page</string>
+	<string name="explain_preferences_share_show_main_ui">Show main page when a file is added via Share action</string>
+
+	<string name="preferences_share_publish_file_automatically">Publish file automatically</string>
+	<string name="explain_preferences_share_publish_file_automatically">Unckeck if you want to review the file shared before its publication</string>
+
+	<string name="preferences_share_publish_text_automatically">Publish text automatically</string>
+	<string name="explain_preferences_share_publish_text_automatically">Unckeck if you want to review text shared before its publication</string>
+
 
 </resources>
