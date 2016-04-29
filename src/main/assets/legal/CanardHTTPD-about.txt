@@ -2,4 +2,4 @@ Canard HTTPD is a small HTTP Server easing the share of text, file or folder.
 Usage : invoke share action, then select CanardHTTPD.
  
 Author : Martin Salazard
-Powered by : NanoHTTPD - http://elonen.iki.fi/nanohttpd/ 
+Powered by : Jetty - http://www.eclipse.org/jetty/
