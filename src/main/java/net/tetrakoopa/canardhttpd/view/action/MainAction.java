@@ -166,24 +166,29 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 			@Override
 			public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 				if (MainActivityPreferencesFragment.SHOW_LOG_AND_ACTIVITY_BUTTONS.equals(key)) {
-					final boolean show = sharedPreferences.getBoolean(key, true);
-					logAndActivityButtonsView.setVisibility(show ? View.VISIBLE : View.GONE);
+					updateLogAndActivityButtonsView(sharedPreferences);
 					return;
 				}
 				if (MainActivityPreferencesFragment.SHOW_ADRESS_AND_SHARE_BUTTON.equals(key)) {
-					final boolean show = sharedPreferences.getBoolean(key, true);
-					adressAddShareButtonView.setVisibility(show ? View.VISIBLE : View.GONE);
+					updateAdressAddShareButtonView(sharedPreferences);
 					return;
 				}
 			}
 		});
 
+		updateUI(PreferenceManager.getDefaultSharedPreferences(activity()));
 	}
 
 	private final static void enableViews(View[] views, boolean enabled) {
 		for (View view : views)
 			view.setEnabled(enabled);
 	}
+	private void updateUI(SharedPreferences sharedPreferences) {
+		updateLogAndActivityButtonsView(sharedPreferences);
+		updateAdressAddShareButtonView(sharedPreferences);
+	}
+
+
 	public void updateUI(ServerStatus status) {
 		switch (status) {
 			case STARTING:
@@ -436,4 +441,12 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		}
 	};
 
+	private void updateLogAndActivityButtonsView(SharedPreferences sharedPreferences) {
+		final boolean show = sharedPreferences.getBoolean(MainActivityPreferencesFragment.SHOW_LOG_AND_ACTIVITY_BUTTONS, MainActivityPreferencesFragment.DEFAULT_SHOW_LOG_AND_ACTIVITY_BUTTONS);
+		logAndActivityButtonsView.setVisibility(show ? View.VISIBLE : View.GONE);
+	}
+	private void updateAdressAddShareButtonView(SharedPreferences sharedPreferences) {
+		final boolean show = sharedPreferences.getBoolean(MainActivityPreferencesFragment.SHOW_ADRESS_AND_SHARE_BUTTON, MainActivityPreferencesFragment.DEFAULT_SHOW_ADRESS_AND_SHARE_BUTTON);
+		adressAddShareButtonView.setVisibility(show ? View.VISIBLE : View.GONE);
+	}
 }
