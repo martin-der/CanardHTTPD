@@ -11,6 +11,7 @@
         android:orientation="vertical" >
 
 		<LinearLayout
+			android:id="@+id/view_adress_add_share_button"
 		    android:layout_width="fill_parent"
 		    android:layout_height="wrap_content"
 		    android:gravity="right"
@@ -37,6 +38,7 @@
 		</LinearLayout>
 	    
 	    <LinearLayout
+			android:id="@+id/view_log_and_activity_buttons"
 	        android:orientation="horizontal"
 	        android:gravity="left"
 	        android:layout_width="fill_parent"

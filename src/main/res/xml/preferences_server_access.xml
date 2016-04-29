@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<PreferenceCategory
+		android:title="@string/preferences_server_access">
+
+		<CheckBoxPreference
+			android:key="server_access.use_external_ip"
+			android:title="@string/preferences_find_out_external_ip"
+			android:summary="@string/explain_preferences_find_out_external_ip"/>
+
+		<!--CheckBoxPreference
+			android:key="show_save_mark"
+			android:title="@string/preferences_enable_save_mark"
+			android:summary="@string/explain_preferences_enable_save_mark"/>
+
+		<ListPreference
+			android:key="save_mark_type"
+			android:title="@string/preferences_save_mark_type"
+			android:summary="@string/explain_preferences_save_mark_type"
+			android:dialogTitle="@string/preferences_save_mark_type"
+			android:entries="@array/save_mark_area_type"
+			android:entryValues="@array/save_mark_area_type_values" /-->
+
+	</PreferenceCategory>
+
+</PreferenceScreen>

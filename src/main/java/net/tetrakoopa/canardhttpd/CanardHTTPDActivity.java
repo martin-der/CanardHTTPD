@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -19,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import net.tetrakoopa.canardhttpd.preference.MainActivityPreferencesFragment;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
 import net.tetrakoopa.canardhttpd.view.action.MainAction;
@@ -287,24 +289,28 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
+		final int id = item.getItemId();
 
-		if (id==R.id.server_switch) {
+		/*if (id==R.id.server_switch) {
             Toast.makeText(this, "Clicket switch 3", Toast.LENGTH_SHORT).show();
 			boolean isChecked = !item.isChecked();
 			item.setChecked(isChecked);
             return true;
-        }
+        }*/
 
-		if (id==R.id.action_menu_server) {
-			startActivity(new Intent(this, SettingsActivity.class), savedInstanceState);
+		if (id==R.id.action_menu_settings) {
+			startActivity(new Intent(this, CanardHTTPDPreferenceActivity.class));
 			return true;
 		}
 
-        if (id==R.id.action_menu_misc) {
-            startActivity(new Intent(this, SettingsActivity.class), savedInstanceState);
+        /*if (id==R.id.action_menu_show_activity) {
+            startActivity(new Intent(this, ActivityActivity.class), savedInstanceState);
             return true;
         }
+		if (id==R.id.action_menu_show_log) {
+			startActivity(new Intent(this, LogActivity.class), savedInstanceState);
+			return true;
+		}*/
 
 
 		//noinspection SimplifiableIfStatement

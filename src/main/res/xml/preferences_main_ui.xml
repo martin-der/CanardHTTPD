@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<PreferenceCategory
+		android:title="@string/preferences_main_ui">
+
+		<CheckBoxPreference
+			android:key="main_ui.show_adress_and_share_button"
+			android:title="@string/preferences_main_ui_show_adress_and_share_button"
+			android:summary="@string/explain_preferences_main_ui_show_adress_and_share_button"/>
+
+		<CheckBoxPreference
+			android:key="main_ui.show_log_and_activity_buttons"
+			android:title="@string/preferences_main_ui_show_log_and_activity_buttons"
+			android:summary="@string/explain_preferences_main_ui_show_log_and_activity_buttons"/>
+
+	</PreferenceCategory>
+
+</PreferenceScreen>

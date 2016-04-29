@@ -7,14 +7,21 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener.ActionTrigger;
+import net.tetrakoopa.canardhttpd.preference.ServerAccessPreferencesFragment;
 import net.tetrakoopa.canardhttpd.service.http.CanardHTTPD;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.mdu.util.ExceptionUtil;
@@ -64,6 +71,9 @@ public class CanardHTTPDService extends Service {
 	private String externalIp;
 	private FindIPTask findIPTask;
 
+	private Handler handler;
+
+
 	private ServerStatusChangeListener localStatusChangeListener = new ServerStatusChangeListener() {
 		@Override
 		public void onServerStatusChange(CanardHTTPDService service, ActionTrigger actionTrigger, ServerStatus status, Throwable ex) {
@@ -94,14 +104,27 @@ public class CanardHTTPDService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
+
+		handler = new Handler(getMainLooper());
 		applicationIntent = new Intent(this, CanardHTTPDActivity.class);
 		broadcaster = LocalBroadcastManager.getInstance(this);
 		Log.d(TAG, "onCreate");
 
-		if (externalIp == null && findIPTask==null) {
-			findIPTask = new FindIPTask();
-			findIPTask.execute();
-		}
+
+		PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
+			@Override
+			public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+				if (ServerAccessPreferencesFragment.USE_EXTERNAL_IP.equals(key)) {
+					final boolean wantExternalIp = sharedPreferences.getBoolean(key, false);
+					if (wantExternalIp) {
+						startFindingIPOnserviceThread();
+					} else {
+						stopFindingIPOnserviceThread();
+					}
+				}
+			}
+		});
+
 	}
 
 	@Override
@@ -154,10 +177,10 @@ public class CanardHTTPDService extends Service {
 		final String text = message(R.string.server_status_no_download);
 		String info = ""+sharesManager.getThings().size()+" object(s)";
 
-		final Intent serverStopIntent = new Intent(this, NotificationEventReceiver.class);
+		final Intent serverStopIntent = new Intent(this, ServerCommandReceiver.class);
 		serverStopIntent.putExtra(INTEND_EXTRA_KEY_COMMAND, INTEND_EXTRA_COMMAND_SERVER_STOP);
 		PendingIntent pendingIntentStop = PendingIntent.getBroadcast(this, 0, serverStopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-		final Intent serverKillIntent = new Intent(this, NotificationEventReceiver.class);
+		final Intent serverKillIntent = new Intent(this, ServerCommandReceiver.class);
 		serverKillIntent.putExtra(INTEND_EXTRA_KEY_COMMAND, INTEND_EXTRA_COMMAND_SERVER_KILL);
 		PendingIntent pendingIntentKill = PendingIntent.getBroadcast(this, 0, serverKillIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -260,6 +283,36 @@ public class CanardHTTPDService extends Service {
 		return server == null ? requestedPort : server.getPort(0);
 	}
 
+	private void startFindingIP() {
+		if (externalIp == null && findIPTask==null) {
+			Log.d(TAG, "Start searching IP");
+			findIPTask = new FindIPTask();
+			findIPTask.execute();
+		}
+	}
+	private void startFindingIPOnserviceThread() {
+		handler.post(new Runnable() {
+			public void run() {
+				startFindingIP();
+			}
+		});
+	}
+	private void stopFindingIP() {
+		if (findIPTask!=null) {
+			Log.d(TAG, "Stop searching IP");
+			findIPTask.cancel(true);
+			findIPTask = null;
+		}
+	}
+	private void stopFindingIPOnserviceThread() {
+		handler.post(new Runnable() {
+			public void run() {
+				stopFindingIP();
+			}
+		});
+	}
+
+
 	public class FindIPTask extends AsyncTask<Void, Integer, String> {
 
 		protected final int providersCount = NetworkUtil.SOME_IP_PROVIDERS.length + 1;
@@ -314,7 +367,14 @@ public class CanardHTTPDService extends Service {
 		return ResourcesUtil.getString(this, id);
 	}
 
-	public static class NotificationEventReceiver extends BroadcastReceiver {
+	public boolean isOnline() {
+		final ConnectivityManager connectivityManager =
+				(ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+		return connectivityManager.getActiveNetworkInfo() != null &&
+				connectivityManager.getActiveNetworkInfo().isConnected();
+	}
+	public static class ServerCommandReceiver extends BroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -331,6 +391,25 @@ public class CanardHTTPDService extends Service {
 				serviceIntent.putExtra(MESSAGE_INTENT_EXTRA_COMMAND_KEY, MESSAGE_SERVER_KILL);
 				context.startService(serviceIntent);
 				return;
+			}
+		}
+	}
+
+	public static class ConnectionChangeReceiver extends BroadcastReceiver
+	{
+		@Override
+		public void onReceive( Context context, Intent intent )
+		{
+			ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService( Context.CONNECTIVITY_SERVICE );
+			NetworkInfo activeNetInfo = connectivityManager.getActiveNetworkInfo();
+			NetworkInfo mobNetInfo = connectivityManager.getNetworkInfo(     ConnectivityManager.TYPE_MOBILE );
+			if ( activeNetInfo != null )
+			{
+				Toast.makeText( context, "Active Network Type : " + activeNetInfo.getTypeName(), Toast.LENGTH_SHORT ).show();
+			}
+			if( mobNetInfo != null )
+			{
+				Toast.makeText( context, "Mobile Network Type : " + mobNetInfo.getTypeName(), Toast.LENGTH_SHORT ).show();
 			}
 		}
 	}

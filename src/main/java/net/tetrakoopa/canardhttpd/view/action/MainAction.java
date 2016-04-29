@@ -3,8 +3,10 @@ package net.tetrakoopa.canardhttpd.view.action;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,6 +39,7 @@ import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedDirectory;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedFile;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
+import net.tetrakoopa.canardhttpd.preference.MainActivityPreferencesFragment;
 import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
@@ -73,7 +76,9 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	private View serverDependentViews[];
 	private View serviceDependentViews[];
 	private View shareView;
-	
+	private View adressAddShareButtonView;
+	private View logAndActivityButtonsView;
+
 	private final ServerChangeListener serverChangeListener = new ServerChangeListener();
 
 
@@ -82,7 +87,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	}
 
 	@Override
-	protected void internalLayout(View parentView) {
+	protected void internalLayout(final View parentView) {
 
 		publicInfoTextView = (TextView) parentView.findViewById(R.id.server_public_info);
 
@@ -154,6 +159,25 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 
 		serverDependentViews = new View[] { shareServerButton, activityButton };
 		serviceDependentViews = new View[] { shareView };
+
+		adressAddShareButtonView = parentView.findViewById(R.id.view_adress_add_share_button);
+		logAndActivityButtonsView = parentView.findViewById(R.id.view_log_and_activity_buttons);
+		PreferenceManager.getDefaultSharedPreferences(activity()).registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
+			@Override
+			public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+				if (MainActivityPreferencesFragment.SHOW_LOG_AND_ACTIVITY_BUTTONS.equals(key)) {
+					final boolean show = sharedPreferences.getBoolean(key, true);
+					logAndActivityButtonsView.setVisibility(show ? View.VISIBLE : View.GONE);
+					return;
+				}
+				if (MainActivityPreferencesFragment.SHOW_ADRESS_AND_SHARE_BUTTON.equals(key)) {
+					final boolean show = sharedPreferences.getBoolean(key, true);
+					adressAddShareButtonView.setVisibility(show ? View.VISIBLE : View.GONE);
+					return;
+				}
+			}
+		});
+
 	}
 
 	private final static void enableViews(View[] views, boolean enabled) {
@@ -387,30 +411,15 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		serverChangeListener.onServerStatusChange(MainAction.this.service(), ActionTrigger.DISCONNECTION, ServerStatus.DOWN, null);
 	}
 
-	protected String getServerIndexURL() {
-		return "http://" + findOutServerIP() + ":" + MainAction.this.service().getPort() + "/";
+	private void updateAdressAddShareButtonView(boolean visible) {
+		adressAddShareButtonView.setVisibility(visible ? View.VISIBLE : View.GONE);
 	}
 
-	public static String findOutServerIP() {
-		String ip = null;
-		try {
-			ip = NetworkUtil.getIPAddressFromExternalProviders(NetworkUtil.SOME_IP_PROVIDERS);
-			if (ip != null)
-				return ip;
-		} catch (Exception ex) {
-			// Toast.makeText(this.canardHTTPDActivity, "Failed to retreive server IP : " + ex.getClass().getName() + " : " + ex.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-			Log.w(CanardHTTPDActivity.TAG, "Failed to retreive IP using external provider : "+ex.getMessage());
-		}
-		try {
-			ip = NetworkUtil.getIPAddress(true);
-			if (ip != null)
-				return ip;
-		} catch (SocketException e) {
-			Log.w(CanardHTTPDActivity.TAG, "Failed to retreive IP");
-			// Toast.makeText(this.canardHTTPDActivity, "Failed to retreive server IP : " + ex.getClass().getName() + " : " + ex.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-		}
-		return "0.0.0.0";
+	protected String getServerIndexURL() {
+		final String ip = service().getExternalIp();
+		return "http://" + (ip==null?"0.0.0.0":ip) + ":" + MainAction.this.service().getPort() + "/";
 	}
+
 
 	public void invalidateListe() {
 		sharedThingAdapter.notifyDataSetInvalidated();

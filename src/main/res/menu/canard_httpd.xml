@@ -1,11 +1,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" >
 
-    <android.support.v7.widget.SwitchCompat
+    <!--android.support.v7.widget.SwitchCompat
         android:id="@+id/server_switch"
         android:title=""
 		android:actionLayout="@layout/main_switch"
 		app:showAsAction="always"
-        />
+        /-->
 
 	<item android:id="@+id/menu_server_toggle"
 		  android:actionLayout="@layout/main_switch"
@@ -28,21 +28,18 @@
     <item
         android:id="@+id/action_menu_settings"
         android:orderInCategory="50"
-        android:title="@string/action_settings">
-        <menu >
-            <item
-                android:id="@+id/action_menu_server"
-                android:title="@string/open_settings_server" />
-            <item
-                android:id="@+id/action_menu_misc"
-                android:title="@string/open_settings_misc" />
-        </menu>
+        android:title="@string/menu_show_settings">
     </item>
     
 	<item
-		android:id="@+id/action_menu_qsdqsd"
+		android:id="@+id/action_menu_show_activity"
 		android:orderInCategory="100"
-		android:title="misc">
+		android:title="@string/menu_show_activity_activity">
 	</item>
-    
+	<item
+		android:id="@+id/action_menu_show_log"
+		android:orderInCategory="101"
+		android:title="@string/menu_show_log_activity">
+	</item>
+
 </menu>
