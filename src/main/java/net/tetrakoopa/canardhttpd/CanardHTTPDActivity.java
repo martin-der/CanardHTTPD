@@ -80,6 +80,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		Log.d(TAG, "Create Activity");
 		super.onCreate(savedInstanceState);
 
 		this.savedInstanceState = savedInstanceState;
@@ -117,6 +118,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	@Override
 	protected void onDestroy() {
+		Log.d(TAG, "Destroy Activity");
 		super.onDestroy();
 	}
 
@@ -148,6 +150,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	@Override
 	public void onStart() {
+		Log.d(TAG, "Start Activity");
 		super.onStart();
 
 		bindHTTPService();
@@ -158,6 +161,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	}
 	@Override
 	public void onStop() {
+		Log.d(TAG, "stop Activity");
 		unbindHTTPService();
 		//stopService(intent);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
