@@ -369,22 +369,4 @@ public class CanardHTTPDActivity extends AppCompatActivity {
         return dontTellAboutMissingFonctionnalies;
     }
 
-
-//	public class NetworkListener extends BroadcastReceiver {
-//
-//		// public static void registerStorageListener(Context context) {
-//		// IntentFilter filter = new IntentFilter();
-//		// filter.addAction(Intent.EV);
-//		// ZZZNetworkListener listener = new ZZNetworkListener();
-//		// context.registerReceiver(listener, filter);
-//		// }
-//
-//		@Override
-//		public void onReceive(Context context, Intent arg1) {
-//
-//			Toast.makeText(context, "Network changed !", Toast.LENGTH_SHORT).show();
-//		}
-//
-//	}
-
 }
