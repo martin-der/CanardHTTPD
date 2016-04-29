@@ -112,10 +112,10 @@
 	<string name="explain_preferences_share_show_main_ui">Show main page upon share. If disabled, then it will be automatically published.</string>
 
 	<string name="preferences_share_publish_file_automatically">Publish file automatically</string>
-	<string name="explain_preferences_share_publish_file_automatically">Unckeck if you want to review the file shared before its publication</string>
+	<string name="explain_preferences_share_publish_file_automatically">Uncheck if you want to review the shared file before its publication</string>
 
 	<string name="preferences_share_publish_text_automatically">Publish text automatically</string>
-	<string name="explain_preferences_share_publish_text_automatically">Unckeck if you want to review text shared before its publication</string>
+	<string name="explain_preferences_share_publish_text_automatically">Uncheck if you want to review shared text before its publication</string>
 
 
 </resources>
