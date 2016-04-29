@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<PreferenceCategory
-		android:title="@string/preferences_main_ui">
+		android:title="@string/preferences_share_intent">
 
 		<CheckBoxPreference
 			android:key="share_intent.show_main_ui"

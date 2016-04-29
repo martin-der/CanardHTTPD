@@ -109,7 +109,7 @@
 	<string name="explain_preferences_share_intent">Preferences when called as a share action</string>
 
 	<string name="preferences_share_show_main_ui">Show main page</string>
-	<string name="explain_preferences_share_show_main_ui">Show main page when a file is added via Share action</string>
+	<string name="explain_preferences_share_show_main_ui">Show main page upon share. If disabled, then it will be automatically published.</string>
 
 	<string name="preferences_share_publish_file_automatically">Publish file automatically</string>
 	<string name="explain_preferences_share_publish_file_automatically">Unckeck if you want to review the file shared before its publication</string>
