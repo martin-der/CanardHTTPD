@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
@@ -24,11 +25,13 @@ import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener.
 import net.tetrakoopa.canardhttpd.preference.ServerAccessPreferencesFragment;
 import net.tetrakoopa.canardhttpd.service.http.CanardHTTPD;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
+import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
 import net.tetrakoopa.mdu.util.ExceptionUtil;
 import net.tetrakoopa.mdua.util.NetworkUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
 
 import java.net.SocketException;
+import java.util.List;
 
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -107,6 +110,7 @@ public class CanardHTTPDService extends Service {
 
 		handler = new Handler(getMainLooper());
 		applicationIntent = new Intent(this, CanardHTTPDActivity.class);
+		applicationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		broadcaster = LocalBroadcastManager.getInstance(this);
 		Log.d(TAG, "onCreate");
 
@@ -135,8 +139,16 @@ public class CanardHTTPDService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
+		Log.d(TAG,"StartCommand");
+
 		if (intent == null) {
 			return START_STICKY;
+		}
+
+		if (tryHandleSend(intent)) {
+			//if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean()) {
+				startActivity(applicationIntent, null);
+			//}
 		}
 
 		if (intent.getExtras() != null) {
@@ -149,8 +161,6 @@ public class CanardHTTPDService extends Service {
 				}
 			}
 		}
-
-		Log.d(TAG,"onStartCommand");
 
 		return START_STICKY;
 	}
@@ -361,6 +371,44 @@ public class CanardHTTPDService extends Service {
 			Log.i(TAG, "Found external ip : " + ip);
 		}
 
+	}
+
+	private boolean tryHandleSend(Intent intent) {
+
+		final String action = intent.getAction();
+		final String type = intent.getType();
+
+		final Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+
+		if (Intent.ACTION_SEND.equals(action) && type != null) {
+			if ("text/plain".equals(type)) {
+				String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+				if (sharedText == null) {
+					Log.d(TAG, "'Intent.ACTION_SEND' with null text (uri ='"+uri+"')");
+					return false;
+				}
+				Log.d(TAG, "Received send intent with text");
+				Toast.makeText(this, "Received : "+sharedText, Toast.LENGTH_SHORT).show();
+				// Update UI to reflect text being shared
+				return true;
+			}
+			Log.d(TAG, "Received send intent for uri='"+uri+"' (type ='"+type+"')");
+			ShareFeedUtil.tryAddFileToSharesElseNotify(this, getSharesManager(), uri);
+			return true;
+		}
+
+		if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
+			List<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+			if (uris != null) {
+				// Update UI to reflect multiple images being shared
+				return false;
+			}
+			return false;
+		}
+
+		Log.d(TAG, "Could not handle send intent with action="+action);
+
+		return false;
 	}
 
 	private String message(int id) {

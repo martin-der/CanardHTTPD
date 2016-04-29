@@ -189,7 +189,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	}
 
 
-	public void updateUI(ServerStatus status) {
+	private void updateUI(ServerStatus status) {
 		switch (status) {
 			case STARTING:
 				toggleServerButton.setEnabled(false);

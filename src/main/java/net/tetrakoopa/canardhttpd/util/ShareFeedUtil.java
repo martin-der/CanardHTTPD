@@ -1,6 +1,7 @@
 package net.tetrakoopa.canardhttpd.util;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDActivity;
+import net.tetrakoopa.canardhttpd.CanardHTTPDService;
 import net.tetrakoopa.canardhttpd.R;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
@@ -48,30 +50,30 @@ public class ShareFeedUtil {
 		return false;
 	}*/
 
-	public static boolean tryAddFileToSharesElseNotify(final CanardHTTPDActivity activity, SharesManager manager, final Uri uri) {
+	public static boolean tryAddFileToSharesElseNotify(final Context context, SharesManager manager, final Uri uri) {
 		try {
             final String dontAskPreferenceName = "Shares_Persistance_with_READ_EXTERNAL_CONTEXT";
-			final SharedThing thing = manager.add(activity.getApplicationContext(), uri);
-			Toast.makeText(activity, "Added "+thing.getType()+ " '" + thing.getName() + "'", Toast.LENGTH_SHORT).show();
-			if (manager.unmetRequirements.contains(CanardHTTPDActivity.UNMET_REQUIREMENT.PERMISSION_MISSING_READ_EXTERNAL_STORAGE)) {
+			final SharedThing thing = manager.add(context, uri);
+			//Toast.makeText(activity, "Added "+thing.getType()+ " '" + thing.getName() + "'", Toast.LENGTH_SHORT).show();
+			/*if (manager.unmetRequirements.contains(CanardHTTPDActivity.UNMET_REQUIREMENT.PERMISSION_MISSING_READ_EXTERNAL_STORAGE)) {
                 if (!activity.getDontTellAboutMissingFonctionnaliesPreferences().getBoolean(dontAskPreferenceName, false)) {
                     final SystemUIUtil.DontShowAgainLinkedToPreference dontShowAgain = new SystemUIUtil.DontShowAgainLinkedToPreference(true, CanardHTTPDActivity.DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME, dontAskPreferenceName);
                     SystemUIUtil.showOKDialog(activity, activity.message(R.string.title_half_functionnal), activity.message(R.string.message_READ_EXTERNAL_STORAGE_for_share_manager), dontShowAgain);
                 }
-			}
+			}*/
 			return true;
 		} catch (AlreadySharedException e) {
-			SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), activity.message(R.string.error_file_already_shared));
-			Log.i(CanardHTTPDActivity.TAG, "Uri '" + uri + "' already shared");
+			//SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), activity.message(R.string.error_file_already_shared));
+			Log.i(CanardHTTPDService.TAG, "Uri '" + uri + "' already shared");
 			return false;
 		} catch (BadShareTypeException e) {
-			Log.i(CanardHTTPDActivity.TAG, "Uri '" + uri + "' cannot be shared : " + e.getMessage());
-			Toast.makeText(activity, R.string.error_failed_to_share_this_file_type, Toast.LENGTH_LONG).show();
+			Log.i(CanardHTTPDService.TAG, "Uri '" + uri + "' cannot be shared : " + e.getMessage());
+			//Toast.makeText(activity, R.string.error_failed_to_share_this_file_type, Toast.LENGTH_LONG).show();
 			return false;
 		} catch (NotFoundFromUriException e) {
 			final String message = "Uri '" + uri + "' couldn't be found : " + e.getLocalizedMessage();
-			SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), message);
-			Log.e(CanardHTTPDActivity.TAG, message, e);
+			//SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), message);
+			Log.e(CanardHTTPDService.TAG, message, e);
 			return false;
 		}
 	}

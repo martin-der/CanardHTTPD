@@ -23,6 +23,7 @@ import android.widget.Toast;
 import net.tetrakoopa.canardhttpd.preference.MainActivityPreferencesFragment;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
+import net.tetrakoopa.canardhttpd.util.ToMduaUtil;
 import net.tetrakoopa.canardhttpd.view.action.MainAction;
 import net.tetrakoopa.mdua.util.ContractuelUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
@@ -171,16 +172,20 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	}
 
 	private void updateUI(CanardHTTPDService.ServerStatus serverStatus) {
-		mainAction.updateUI(serverStatus);
 		mainAction.onServiceConnected(serviceExtra.componentName, serviceExtra.serviceBinder);
 	}
 
 	private void bindHTTPService() {
-		final Intent intent = new Intent(this, CanardHTTPDService.class);
+		final Intent serviceIntent = new Intent(this, CanardHTTPDService.class);
+		final String action = getIntent().getAction();
+		if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+			ToMduaUtil.mimicIntent(getIntent(), serviceIntent);
+		}
+
 		Log.d(TAG, "bind HTTPService");
-		bindService(intent, connection, Context.BIND_AUTO_CREATE);
+		bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
 		Log.d(TAG, "HTTPService binded");
-		startService(intent);
+		startService(serviceIntent);
 	}
 	private void unbindHTTPService() {
 		Log.d(TAG, "unbind HTTPService");
@@ -199,7 +204,6 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 			if (intentParametersNeedToBeChecked) {
 				intentParametersNeedToBeChecked = false;
-                tryHandleSend();
 			}
 			if (needToCheckPickupActivityReturn) {
 				needToCheckPickupActivityReturn = false;
@@ -321,49 +325,6 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
-    private boolean tryHandleSend() {
-        Intent intent = getIntent();
-        String action = intent.getAction();
-        String type = intent.getType();
-
-        if (Intent.ACTION_SEND.equals(action) && type != null) {
-            if ("text/plain".equals(type)) {
-                handleSendText(intent);
-                return true;
-            }
-            final Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-            ShareFeedUtil.tryAddFileToSharesElseNotify(this, getService().getSharesManager(), uri);
-            return true;
-        } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
-            handleSendMultipleStreams(intent);
-            return true;
-        }
-
-        return false;
-
-    }
-    void handleSendText(Intent intent) {
-        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-        if (sharedText != null) {
-            Toast.makeText(this, "Received : "+sharedText, Toast.LENGTH_SHORT).show();
-            // Update UI to reflect text being shared
-        }
-    }
-
-    void handleSendStream(Intent intent) {
-        Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-        if (uri != null) {
-            Toast.makeText(this, "Received : "+uri.getPath(), Toast.LENGTH_SHORT).show();
-            // Update UI to reflect image being shared
-        }
-    }
-
-    void handleSendMultipleStreams(Intent intent) {
-        List<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-        if (uris != null) {
-            // Update UI to reflect multiple images being shared
-        }
-    }
     public static final String DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME = "Dont_Tell_ABout_Missing_Functionnality";
     public SharedPreferences getDontTellAboutMissingFonctionnaliesPreferences() {
         return dontTellAboutMissingFonctionnalies;
