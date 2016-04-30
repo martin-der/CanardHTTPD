@@ -303,16 +303,16 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 
 		if (id==R.id.action_menu_settings) {
-			startActivity(new Intent(this, CanardHTTPDPreferenceActivity.class));
+			startActivity(new Intent(this, CanardHTTPDPreferenceActivity.class)/*, savedInstanceState*/);
 			return true;
 		}
 
         if (id==R.id.action_menu_show_activity) {
-            startActivity(new Intent(this, MonitoringActivity.class), savedInstanceState);
+            startActivity(new Intent(this, MonitoringActivity.class)/*, savedInstanceState*/);
             return true;
         }
 		if (id==R.id.action_menu_show_log) {
-			startActivity(new Intent(this, LogActivity.class), savedInstanceState);
+			startActivity(new Intent(this, LogActivity.class)/*, savedInstanceState*/)	;
 			return true;
 		}
 		if (id==R.id.action_menu_share_url) {

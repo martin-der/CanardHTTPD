@@ -127,7 +127,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		logButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View button) {
-				activity.startActivity(new Intent(MainAction.this.activity, LogActivity.class), savedInstanceState);
+				activity.startActivity(new Intent(MainAction.this.activity, LogActivity.class)/*, savedInstanceState*/);
 			}
 		});
 
