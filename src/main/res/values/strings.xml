@@ -21,7 +21,7 @@
     <string name="add_share">Add something to share list</string>
     <string name="add_collection_share">Add a collection to share list</string>
 
-    <string name="title_half_functionnal">Some functionnality missing...</string>
+    <string name="title_half_functionnal">Some functionnality missing…</string>
     <string name="message_READ_EXTERNAL_STORAGE_for_share_manager">Since \'Read External Storage\' permission is not granted, the application won\'t be able to keep track of shared file on external storage upon stop and restart.</string>
 
     <string name="domain_log">Log</string>
