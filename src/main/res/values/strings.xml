@@ -49,10 +49,16 @@
 
     <string name="title_listen_interface">Listen</string>
     <string name="title_share_address">Share Server Address</string>
-	<string name="intent_default_object_share_address">Address of my Canard HTTPD server</string>
+	<string name="intent_object_share_server_address">Address of my Canard HTTPD server</string>
+	<string name="intent_content_share_server_address">Follow this link to access my CanardHTTPD server : {{server.url}}</string>
+
+	<string name="intent_object_share_resource_address">Link to resource</string>
+	<string name="intent_content_share_resource_address">Follow this link to access to the resource : {{resource.url}}</string>
+	<string name="intent_object_share_unknown_resource_address">Link to {{resource.name}}</string>
+	<string name="intent_content_share_unknown_resource_address">Follow this link to access to {{resource.name}} : {{resource.url}}</string>
 
 
-    <string name="notification_server_running_on">Server started</string>
+	<string name="notification_server_running_on">Server started</string>
     <string name="notification_server_stopped">Server stopped</string>
 
     <string name="title_pick_file_to_share">Choose what to share</string>
