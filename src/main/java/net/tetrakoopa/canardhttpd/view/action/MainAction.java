@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,7 +21,6 @@ import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,7 +31,6 @@ import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener;
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener.ActionTrigger;
 import net.tetrakoopa.canardhttpd.LogActivity;
 import net.tetrakoopa.canardhttpd.R;
-import net.tetrakoopa.canardhttpd.SettingsActivity;
 import net.tetrakoopa.canardhttpd.domain.common.CommonSharedThing;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.domain.sharing.SharedDirectory;
@@ -42,14 +39,11 @@ import net.tetrakoopa.canardhttpd.domain.sharing.SharedText;
 import net.tetrakoopa.canardhttpd.preference.MainActivityPreferencesFragment;
 import net.tetrakoopa.canardhttpd.service.http.writer.CommonHTMLComponent;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
-import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
 import net.tetrakoopa.mdu.util.ExceptionUtil;
 import net.tetrakoopa.mdua.util.ContractuelUtil;
-import net.tetrakoopa.mdua.util.NetworkUtil;
 import net.tetrakoopa.mdua.util.SystemUtil;
 import net.tetrakoopa.mdua.view.util.SystemUIUtil;
 
-import java.net.SocketException;
 import java.util.List;
 
 public class MainAction extends AbstractCommonAction implements ServiceConnection {
@@ -76,7 +70,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	private View serverDependentViews[];
 	private View serviceDependentViews[];
 	private View shareView;
-	private View adressAddShareButtonView;
+	private View addressAddShareButtonView;
 	private View logAndActivityButtonsView;
 
 	private final ServerChangeListener serverChangeListener = new ServerChangeListener();
@@ -160,7 +154,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		serverDependentViews = new View[] { shareServerButton, activityButton };
 		serviceDependentViews = new View[] { shareView };
 
-		adressAddShareButtonView = parentView.findViewById(R.id.view_adress_add_share_button);
+		addressAddShareButtonView = parentView.findViewById(R.id.view_address_add_share_button);
 		logAndActivityButtonsView = parentView.findViewById(R.id.view_log_and_activity_buttons);
 		PreferenceManager.getDefaultSharedPreferences(activity()).registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
 			@Override
@@ -169,7 +163,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 					updateLogAndActivityButtonsView(sharedPreferences);
 					return;
 				}
-				if (MainActivityPreferencesFragment.SHOW_ADRESS_AND_SHARE_BUTTON.equals(key)) {
+				if (MainActivityPreferencesFragment.SHOW_ADDRESS_AND_SHARE_BUTTON.equals(key)) {
 					updateAdressAddShareButtonView(sharedPreferences);
 					return;
 				}
@@ -417,10 +411,10 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	}
 
 	private void updateAdressAddShareButtonView(boolean visible) {
-		adressAddShareButtonView.setVisibility(visible ? View.VISIBLE : View.GONE);
+		addressAddShareButtonView.setVisibility(visible ? View.VISIBLE : View.GONE);
 	}
 
-	protected String getServerIndexURL() {
+	public String getServerIndexURL() {
 		final String ip = service().getExternalIp();
 		return "http://" + (ip==null?"0.0.0.0":ip) + ":" + MainAction.this.service().getPort() + "/";
 	}
@@ -446,7 +440,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		logAndActivityButtonsView.setVisibility(show ? View.VISIBLE : View.GONE);
 	}
 	private void updateAdressAddShareButtonView(SharedPreferences sharedPreferences) {
-		final boolean show = sharedPreferences.getBoolean(MainActivityPreferencesFragment.SHOW_ADRESS_AND_SHARE_BUTTON, MainActivityPreferencesFragment.DEFAULT_SHOW_ADRESS_AND_SHARE_BUTTON);
-		adressAddShareButtonView.setVisibility(show ? View.VISIBLE : View.GONE);
+		final boolean show = sharedPreferences.getBoolean(MainActivityPreferencesFragment.SHOW_ADDRESS_AND_SHARE_BUTTON, MainActivityPreferencesFragment.DEFAULT_SHOW_ADRESS_AND_SHARE_BUTTON);
+		addressAddShareButtonView.setVisibility(show ? View.VISIBLE : View.GONE);
 	}
 }

@@ -8,6 +8,7 @@
         /-->
 
 	<item android:id="@+id/menu_server_toggle"
+		  android:title="@string/menu_server_toggle"
 		  android:actionLayout="@layout/main_switch"
 		  android:icon="@mipmap/canard_httpd_main"
 		  app:showAsAction="always"/>
@@ -28,7 +29,7 @@
     <item
         android:id="@+id/action_menu_settings"
         android:orderInCategory="50"
-        android:title="@string/menu_show_settings">
+        android:title="@string/menu_open_settings">
     </item>
     
 	<item
@@ -41,5 +42,12 @@
 		android:orderInCategory="101"
 		android:title="@string/menu_show_log_activity">
 	</item>
+
+	<item
+		android:id="@+id/action_menu_share_url"
+		android:orderInCategory="101"
+		android:title="@string/menu_share_url">
+	</item>
+
 
 </menu>

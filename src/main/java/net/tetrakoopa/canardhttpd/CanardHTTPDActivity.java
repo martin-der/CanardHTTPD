@@ -11,7 +11,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -20,17 +19,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import net.tetrakoopa.canardhttpd.preference.MainActivityPreferencesFragment;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
-import net.tetrakoopa.canardhttpd.util.ToMduaUtil;
 import net.tetrakoopa.canardhttpd.view.action.MainAction;
 import net.tetrakoopa.mdua.util.ContractuelUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
+import net.tetrakoopa.mdua.util.IntentUtil;
 import net.tetrakoopa.mdua.view.util.SystemUIUtil;
 
 import java.io.File;
-import java.util.List;
 
 
 public class CanardHTTPDActivity extends AppCompatActivity {
@@ -188,7 +185,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		final Intent serviceIntent = new Intent(this, CanardHTTPDService.class);
 		final String action = getIntent().getAction();
 		if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-			ToMduaUtil.mimicIntent(getIntent(), serviceIntent);
+			IntentUtil.mimicIntent(getIntent(), serviceIntent);
 		}
 
 		Log.d(TAG, "bind HTTPService");
@@ -304,12 +301,6 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		// as you specify a parent activity in AndroidManifest.xml.
 		final int id = item.getItemId();
 
-		/*if (id==R.id.server_switch) {
-            Toast.makeText(this, "Clicket switch 3", Toast.LENGTH_SHORT).show();
-			boolean isChecked = !item.isChecked();
-			item.setChecked(isChecked);
-            return true;
-        }*/
 
 		if (id==R.id.action_menu_settings) {
 			startActivity(new Intent(this, CanardHTTPDPreferenceActivity.class));
@@ -324,12 +315,11 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 			startActivity(new Intent(this, LogActivity.class), savedInstanceState);
 			return true;
 		}
+		if (id==R.id.action_menu_share_url) {
+			IntentUtil.shareText(this, R.string.title_share_address, message(R.string.title_share_address), mainAction.getServerIndexURL());
+			return true;
+		}
 
-
-		//noinspection SimplifiableIfStatement
-		//if (id == R.id.action_settings) {
-		//	return true;
-		//}
 
 		return super.onOptionsItemSelected(item);
 	}

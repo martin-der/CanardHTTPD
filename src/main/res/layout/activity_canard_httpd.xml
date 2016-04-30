@@ -11,7 +11,7 @@
         android:orientation="vertical" >
 
 		<LinearLayout
-			android:id="@+id/view_adress_add_share_button"
+			android:id="@+id/view_address_add_share_button"
 		    android:layout_width="fill_parent"
 		    android:layout_height="wrap_content"
 		    android:gravity="right"

@@ -5,9 +5,9 @@
 		android:title="@string/preferences_main_ui">
 
 		<CheckBoxPreference
-			android:key="main_ui.show_adress_and_share_button"
-			android:title="@string/preferences_main_ui_show_adress_and_share_button"
-			android:summary="@string/explain_preferences_main_ui_show_adress_and_share_button"/>
+			android:key="main_ui.show_address_and_share_button"
+			android:title="@string/preferences_main_ui_show_address_and_share_button"
+			android:summary="@string/explain_preferences_main_ui_show_address_and_share_button"/>
 
 		<CheckBoxPreference
 			android:key="main_ui.show_log_and_activity_buttons"
