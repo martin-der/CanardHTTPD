@@ -55,6 +55,8 @@ android {
 	}
 	packagingOptions {
 		exclude 'META-INF/eclipse.inf'
+		exclude 'META-INF/ECLIPSE_.SF'
+		exclude 'META-INF/ECLIPSE_.RSA'
    }
 }
 
@@ -70,9 +72,9 @@ dependencies {
 	compile files('libs/org.eclipse.jetty.webapp_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.policy_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.security_8.1.18.v20150929.jar')
-	compile files('libs/org.eclipse.jetty.client_8.1.18.v20150929.jar')
+	//compile files('libs/org.eclipse.jetty.client_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.continuation_8.1.18.v20150929.jar')
-	compile files('libs/org.eclipse.jetty.nested_8.1.18.v20150929.jar')
+	//compile files('libs/org.eclipse.jetty.nested_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.plus_8.1.18.v20150929.jar')
 }
 
