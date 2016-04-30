@@ -316,7 +316,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 			return true;
 		}
 		if (id==R.id.action_menu_share_url) {
-			IntentUtil.shareText(this, R.string.title_share_address, message(R.string.title_share_address), mainAction.getServerIndexURL());
+			IntentUtil.shareText(this, R.string.title_share_address, message(R.string.intent_default_object_share_address), mainAction.getServerIndexURL());
 			return true;
 		}
 

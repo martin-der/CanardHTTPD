@@ -48,8 +48,9 @@
     <string name="server_action_kill">Kill</string>
 
     <string name="title_listen_interface">Listen</string>
-    <string name="title_share_address">Share IP</string>
-    
+    <string name="title_share_address">Share Server Address</string>
+	<string name="intent_default_object_share_address">Address of my Canard HTTPD server</string>
+
 
     <string name="notification_server_running_on">Server started</string>
     <string name="notification_server_stopped">Server stopped</string>
