@@ -184,7 +184,7 @@ public class CanardHTTPDService extends Service {
 	private void showNotification() {
 
 		final String title = message(R.string.app_name);
-		final String text = message(R.string.server_status_no_download);
+		final String text = message(R.string.notification_server_status_no_download);
 		String info = ""+sharesManager.getThings().size()+" object(s)";
 
 		final Intent serverStopIntent = new Intent(this, ServerCommandReceiver.class);
@@ -198,8 +198,8 @@ public class CanardHTTPDService extends Service {
 		builder.setContentTitle(title).setSmallIcon(R.mipmap.canard_httpd_server);
 		builder.setContentText(text).setContentInfo(info);
 		builder.setOngoing(true);
-		builder.addAction(android.R.drawable.stat_sys_download_done, message(R.string.server_action_finish_then_stop), pendingIntentStop);
-		builder.addAction(android.R.drawable.ic_notification_clear_all, message(R.string.server_action_kill), pendingIntentKill);
+		builder.addAction(android.R.drawable.stat_sys_download_done, message(R.string.notification_server_action_finish_then_stop), pendingIntentStop);
+		builder.addAction(android.R.drawable.ic_notification_clear_all, message(R.string.notification_server_action_kill), pendingIntentKill);
 		Notification notification = builder.build();
 
 		notification.contentIntent = PendingIntent.getActivity(this, 0, applicationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
