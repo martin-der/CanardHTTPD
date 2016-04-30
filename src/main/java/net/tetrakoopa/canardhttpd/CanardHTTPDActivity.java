@@ -185,7 +185,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		final Intent serviceIntent = new Intent(this, CanardHTTPDService.class);
 		final String action = getIntent().getAction();
 		if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-			IntentUtil.mimicIntent(getIntent(), serviceIntent);
+			IntentUtil.mimicIntent(getIntent(), serviceIntent, Intent.EXTRA_TEXT, Intent.EXTRA_SUBJECT, Intent.EXTRA_STREAM);
 		}
 
 		Log.d(TAG, "bind HTTPService");
