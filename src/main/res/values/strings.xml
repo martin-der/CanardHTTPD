@@ -43,6 +43,8 @@
 	<string name="menu_show_activity_activity">Activity</string>
 	<string name="menu_share_url">Share Address</string>
 
+	<string name="explain_action_clear_log">Clear the log history</string>
+
     <string name="notification_server_status_no_download">Nothing being downloaded</string>
     <string name="notification_server_status_download_in_progress">%1$d resource(s) being downloaded</string>
     <string name="notification_server_action_finish_then_stop">Stop</string>
@@ -89,6 +91,33 @@
     <string name="error_activity_param_unknown_mime_type">Don\'t know how to share this kind of file</string>
     <string name="error_file_already_shared">File is already shared.</string>
     <string name="error_file_not_shared">File is not shared.</string>
+
+
+
+	<!-- ***************** -->
+	<!-- Event Log message -->
+	<!-- ***************** -->
+
+	<string name="eventlog_UNDEFINED_MAIN_ACTIVITY_PROBLEM">Undefined application problem</string>
+	<string name="eventlog_UNDEFINED_WEB_SERVER_PROBLEM">Undefined server problem</string>
+
+	<string name="eventlog_SERVER_START_REQUESTED">Starting server...</string>
+	<string name="eventlog_SERVER_STARTED">Server started</string>
+	<string name="eventlog_SERVER_START_FAILED">Failed to start server</string>
+	<string name="eventlog_SERVER_STOP_REQUESTED">Stoping server...</string>
+	<string name="eventlog_SERVER_STOPPED">Server stopped</string>
+	<string name="eventlog_SERVER_STOP_FAILED">Failed to stop server</string>
+
+	<string name="eventlog_WEBUSER_REQUESTED_FORBIDEN_RESOURCE">Forbidden resource \'%1$s\' request</string>
+	<string name="eventlog_WEBUSER_REQUESTED_UNKOWN_RESOURCE">Unknown resource \'%1$s\' request</string>
+	<string name="eventlog_WEBUSER_DOWNLOAD_COMPLETED">Complete download of \'%1$s\'</string>
+	<string name="eventlog_WEBUSER_DOWNLOAD_STARTED">Start download of \'%1$s\'</string>
+	<string name="eventlog_WEBUSER_DOWNLOAD_WAS_CANCELLED">Cancel download of \'%1$s\'</string>
+
+	<string name="eventlog_USER_ADDED_RESOURCE">Resource \'%1$s\' added</string>
+	<string name="eventlog_USER_REMOVED_RESOURCE">Resource \'%1$s\' removed</string>
+	<string name="eventlog_USER_ADD_RESOURCE_DENIED_BECAUSE_DUPLICATED">Duplicate resource \'%1$s\' not added</string>
+
 
 	<!-- *********** -->
 	<!-- Preferences -->
