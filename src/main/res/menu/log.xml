@@ -1,0 +1,36 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+	<item android:id="@+id/filter_severity"
+		  app:showAsAction="always"
+		  app:actionViewClass="android.widget.Spinner" />
+
+
+	<item
+		android:id="@+id/action_menu_set_filter_user"
+		android:orderInCategory="200"
+		android:title="@string/menu_set_filter_user">
+	</item>
+	<item
+		android:id="@+id/action_menu_set_filter_event"
+		android:orderInCategory="200"
+		android:title="@string/menu_set_filter_event">
+	</item>
+	<item
+		android:id="@+id/action_menu_set_filter_date"
+		android:orderInCategory="200"
+		android:title="@string/menu_set_filter_date">
+	</item>
+	<item
+		android:id="@+id/action_menu_reset_filters"
+		android:orderInCategory="200"
+		android:title="@string/menu_reset_filters">
+	</item>
+	<item
+		android:id="@+id/action_menu_clear_log"
+		android:orderInCategory="500"
+		android:title="@string/menu_clear_log">
+	</item>
+
+
+
+</menu>
