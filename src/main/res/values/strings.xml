@@ -35,6 +35,10 @@
     <string name="domain_server_status_stopped">Down</string>
     <string name="domain_server_status_unknown">Unknown</string>
 
+	<string name="domain_message_severity_error">Error</string>
+	<string name="domain_message_severity_warning">Warning</string>
+	<string name="domain_message_severity_information">Information</string>
+
     <string name="generic_unknown">Unknown</string>
 
 	<string name="menu_server_toggle">Start/Stop server</string>
@@ -42,6 +46,14 @@
 	<string name="menu_show_log_activity">Log</string>
 	<string name="menu_show_activity_activity">Activity</string>
 	<string name="menu_share_url">Share Address</string>
+
+	<string name="menu_set_filter_user">Filter user</string>
+	<string name="menu_set_filter_event">Filter event</string>
+	<string name="menu_set_filter_date">Filter date</string>
+	<string name="menu_reset_filters">Reset filters</string>
+	<string name="menu_clear_log">Clear logs</string>
+
+
 
 	<string name="explain_action_clear_log">Clear the log history</string>
 

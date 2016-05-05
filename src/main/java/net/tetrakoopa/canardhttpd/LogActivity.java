@@ -2,30 +2,32 @@ package net.tetrakoopa.canardhttpd;
 
 import android.annotation.TargetApi;
 import android.app.ActionBar;
-import android.app.Activity;
-import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.widget.BaseAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import net.tetrakoopa.canardhttpd.domain.EventLog;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -33,59 +35,195 @@ import java.util.List;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class LogActivity extends AppCompatActivity {
 
-	public final static String MANIFEST_ACTIVITY = CanardHTTPDActivity.MANIFEST_PACKAGE+".LogActivity";
-
 	private ListView eventsLogList;
-	private ImageButton clearButton;
+	private EventLogAdapter eventLogAdapter;
+	private final List<EventLog> events = new ArrayList<>();
 
-	private DateFormat dateFormat;
+	public class SeveritySpinnerAdapter extends BaseAdapter {
 
-	public class EventLogAdapter extends ArrayAdapter<EventLog> {
+		@Override
+		public int getCount() {
+			return EventLog.Severity.values().length;
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return EventLog.Severity.values()[position];
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return (long)position;
+		}
+
+		@Override
+		public View getView(int position, View view, ViewGroup parent) {
+
+			if (view == null) {
+				LayoutInflater vi = LogActivity.this.getLayoutInflater();
+				view = vi.inflate(R.layout.severity_spinner_item, null);
+			}
+
+			final ImageView icon = (ImageView) view.findViewById(R.id.icon);
+
+			final EventLog.Severity severity = EventLog.Severity.values()[position];
+			if (severity == EventLog.Severity.ERROR)
+				icon.setImageResource(R.mipmap.severity_error);
+			else if (severity == EventLog.Severity.WARN)
+				icon.setImageResource(R.mipmap.severity_warn);
+			else if (severity == EventLog.Severity.INFO)
+				icon.setImageResource(R.mipmap.severity_info);
+
+			return view;
+		}
+		@Override
+		public View getDropDownView(int position, View view, ViewGroup parent) {
+
+			if (view == null) {
+				LayoutInflater vi = LogActivity.this.getLayoutInflater();
+				view = vi.inflate(R.layout.severity_spinner_item_dd, null);
+			}
+
+			final ImageView icon = (ImageView) view.findViewById(R.id.icon);
+			final TextView label = (TextView) view.findViewById(R.id.label);
+
+			final EventLog.Severity severity = EventLog.Severity.values()[position];
+			if (severity == EventLog.Severity.ERROR)
+				icon.setImageResource(R.mipmap.severity_error);
+			else if (severity == EventLog.Severity.WARN)
+				icon.setImageResource(R.mipmap.severity_warn);
+			else if (severity == EventLog.Severity.INFO)
+				icon.setImageResource(R.mipmap.severity_info);
+
+
+			if (severity == EventLog.Severity.ERROR)
+				label.setText(R.string.domain_message_severity_error);
+			else if (severity == EventLog.Severity.WARN)
+				label.setText(R.string.domain_message_severity_warning);
+			else if (severity == EventLog.Severity.INFO)
+				label.setText(R.string.domain_message_severity_information);
+
+			return view;
+		}
+	}
+
+	public class EventLogAdapter extends ArrayAdapter<EventLog> implements Filterable {
 
 		private final List<EventLog> events;
+		private final List<EventLog> allEvents;
+
+		private Spinner logSeverityFilter;
 
 		public EventLogAdapter(List<EventLog> events) {
 			super(LogActivity.this, R.layout.event_log_listitem, events);
 			this.events = events;
+			this.allEvents = new ArrayList<>(events);
 		}
+
+		public Filter getFilter() {
+			return new Filter() {
+
+				@SuppressWarnings("unchecked")
+				@Override
+				protected void publishResults(CharSequence constraint, FilterResults results) {
+					notifyDataSetChanged();
+				}
+
+				@Override
+				protected FilterResults performFiltering(CharSequence constraint) {
+
+					final FilterResults results = new FilterResults();
+					events.clear();
+
+					for (EventLog event : allEvents) {
+						if (event.getSeverity().ordinal()>= EventLog.Severity.WARN.ordinal())  {
+							events.add(event);
+						}
+					}
+
+					results.count = events.size();
+					results.values = events;
+
+					return results;
+				}
+			};
+
+		}
+
 		@Override
-		public View getView(final int position, View convertView, ViewGroup parent) {
+		public View getView(final int position, View view, ViewGroup parent) {
 
-			final EventLog event = events.get(position);
+			try {
+				final EventLog event = events.get(position);
 
-			final boolean needInit = convertView == null;
-			if (needInit) {
-				LayoutInflater vi = LogActivity.this.getLayoutInflater();
-				convertView = vi.inflate(R.layout.event_log_listitem, null);
+				final boolean needInit = view == null;
+				if (needInit) {
+					LayoutInflater vi = LogActivity.this.getLayoutInflater();
+					view = vi.inflate(R.layout.event_log_listitem, null);
+				}
+
+				final ImageView severity = (ImageView) view.findViewById(R.id.eventlog_severity);
+				final TextView name = (TextView) view.findViewById(R.id.eventlog_text);
+				final TextView date = (TextView) view.findViewById(R.id.eventlog_date);
+				final TextView user = (TextView) view.findViewById(R.id.eventlog_user);
+
+
+				if (event.getSeverity() == EventLog.Severity.ERROR)
+					severity.setImageResource(R.mipmap.severity_error);
+				else if (event.getSeverity() == EventLog.Severity.WARN)
+					severity.setImageResource(R.mipmap.severity_warn);
+				else if (event.getSeverity() == EventLog.Severity.INFO)
+					severity.setImageResource(R.mipmap.severity_info);
+				severity.setScaleX(0.5f);
+				severity.setScaleY(0.5f);
+
+
+				final String messageFmt = message(event.getMessage());
+				name.setText(String.format(messageFmt, event.getExtras()));
+
+				date.setText(DateUtils.getRelativeDateTimeString(LogActivity.this, event.getDate().getTime(), 0, 0, DateUtils.FORMAT_SHOW_WEEKDAY));
+
+				if (event.getUser() != null)
+					user.setText(event.getUser());
+
+			} catch(Exception z) {
+				Log.d("LOG", "z = "+z, z);
 			}
 
-			ImageView severity = (ImageView) convertView.findViewById(R.id.eventlog_severity);
-			TextView name = (TextView) convertView.findViewById(R.id.eventlog_text);
-			TextView date = (TextView) convertView.findViewById(R.id.eventlog_date);
-			TextView user = (TextView) convertView.findViewById(R.id.eventlog_user);
 
-
-			if (event.getSeverity() == EventLog.Severity.ERROR)
-				severity.setImageResource(R.mipmap.severity_error);
-			else if (event.getSeverity() == EventLog.Severity.WARN)
-				severity.setImageResource(R.mipmap.severity_warn);
-			else if (event.getSeverity() == EventLog.Severity.INFO)
-				severity.setImageResource(R.mipmap.severity_info);
-			severity.setScaleX(0.5f);
-			severity.setScaleY(0.5f);
-
-
-			final String messageFmt = message(event.getMessage());
-			name.setText(messageFmt);
-
-			date.setText(dateFormat.format(event.getDate()));
-			//date.setText(DateUtils.getRelativeDateTimeString(LogActivity.this, event.getDate().getTime(), 0, 0, DateUtils.FORMAT_SHOW_WEEKDAY));
-
-			if (event.getUser()!=null)
-				user.setText(event.getUser());
-
-			return convertView;
+			return view;
 		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.log, menu);
+
+		final MenuItem severityFilterMenu = menu.findItem(R.id.filter_severity);
+		final Spinner logSeverityFilter = (Spinner)MenuItemCompat.getActionView(severityFilterMenu);
+
+		MenuItem clearLogMenu = menu.findItem(R.id.action_menu_clear_log);
+
+		clearLogMenu.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menu) {
+				eventLogAdapter.events.clear();
+				eventLogAdapter.notifyDataSetChanged();
+				return true;
+			}
+		});
+
+
+		logSeverityFilter.setAdapter(new SeveritySpinnerAdapter());
+		severityFilterMenu.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menu) {
+				eventLogAdapter.notifyDataSetChanged();
+				return true;
+			}
+		});
+
+		return true;
 	}
 
 	@Override
@@ -93,28 +231,17 @@ public class LogActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_log);
 		final ActionBar actionBar = getActionBar();
-		if (actionBar!=null) {
+		if (actionBar!=null)
 			actionBar.setDisplayHomeAsUpEnabled(true);
-		}
 
-		dateFormat = android.text.format.DateFormat.getTimeFormat(this);
-		// message(R.string.eventlog_date_format);
+		//dateFormat = android.text.format.DateFormat.getTimeFormat(this);
+		eventLogAdapter = new EventLogAdapter(events);
 
-		clearButton = (ImageButton) findViewById(R.id.action_clear_log);
 		eventsLogList = (ListView) findViewById(R.id.events_log);
 
-
-		List<EventLog> events = new ArrayList<>();
-		addFakeLogEvents(events, 5);
-
-		final EventLogAdapter eventLogAdapter = new EventLogAdapter(events);
 		eventsLogList.setAdapter(eventLogAdapter);
 
-		//View mainView = findViewById(R.id.main);
-
-
-
-
+/*
 		clearButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -122,11 +249,14 @@ public class LogActivity extends AppCompatActivity {
 				eventLogAdapter.notifyDataSetChanged();
 			}
 		});
+*/
+
+		addFakeLogEvents(events, 5);
 
 		eventLogAdapter.notifyDataSetChanged();
 	}
 
-	private void addFakeLogEvents(List<EventLog> events, int times) {
+	private static void addFakeLogEvents(List<EventLog> events, int times) {
 		int i;
 		final Calendar date = new GregorianCalendar();
 		date.roll(Calendar.DAY_OF_MONTH, -1);
@@ -136,7 +266,10 @@ public class LogActivity extends AppCompatActivity {
 		createFakeLogEvent(events, date, 1, EventLog.Severity.INFO, EventLog.Type.SERVER_START_FAILED);
 		createFakeLogEvent(events, date, 5, EventLog.Severity.INFO, EventLog.Type.SERVER_START_REQUESTED);
 		createFakeLogEvent(events, date, 4, EventLog.Severity.INFO, EventLog.Type.SERVER_STARTED);
+
+		createFakeLogEvent(events, date, 14, EventLog.Severity.WARN, EventLog.Type.USER_ADDED_RESOURCE, "cat_pic.jpeg");
 		for (i=0; i<times; i++) {
+			//USER_REMOVED_RESOURCE(R.string.eventlog_USER_REMOVED_RESOURCE, Origin.MAIN_ACTIVITY),
 			createFakeLogEvent(events, date, "0.0.0.0", 100, EventLog.Severity.ERROR, EventLog.Type.WEBUSER_REQUESTED_UNKOWN_RESOURCE, "bqsazed");
 			createFakeLogEvent(events, date, 14, EventLog.Severity.WARN, EventLog.Type.USER_ADD_RESOURCE_DENIED_BECAUSE_DUPLICATED, "cat_pic.jpeg");
 			createFakeLogEvent(events, date, "0.0.0.0", 203, EventLog.Severity.INFO, EventLog.Type.WEBUSER_DOWNLOAD_STARTED, "good_music.ogg");
@@ -147,10 +280,10 @@ public class LogActivity extends AppCompatActivity {
 		createFakeLogEvent(events, date, 40, EventLog.Severity.INFO, EventLog.Type.SERVER_STOP_REQUESTED);
 		createFakeLogEvent(events, date, 1, EventLog.Severity.INFO, EventLog.Type.SERVER_STOPPED);
 	}
-	private void createFakeLogEvent(List<EventLog> events, Calendar date, int secondesLater, EventLog.Severity severity, EventLog.Type type, String ... extras) {
+	private static void createFakeLogEvent(List<EventLog> events, Calendar date, int secondesLater, EventLog.Severity severity, EventLog.Type type, String ... extras) {
 		createFakeLogEvent(events, date, null, secondesLater, severity, type);
 	}
-	private void createFakeLogEvent(List<EventLog> events, Calendar date, String user, int secondesLater, EventLog.Severity severity, EventLog.Type type, String ... extras) {
+	private static void createFakeLogEvent(List<EventLog> events, Calendar date, String user, int secondesLater, EventLog.Severity severity, EventLog.Type type, String ... extras) {
 		//date.setTime(date.getTime()+(1000*secondesLater));
 		date.roll(Calendar.SECOND, secondesLater);
 		events.add(new EventLog(severity, type, date.getTime(), user, extras));
