@@ -71,12 +71,11 @@ public class SharesManager {
 		sharedGroup.getThings().remove(sharedFile);
 	}
 
-	public synchronized SharedThing add(Context context, Uri uri) throws NotFoundFromUriException, BadShareTypeException, AlreadySharedException {
-		final ContentResolver contentResolver = context.getContentResolver();
+	public synchronized SharedThing add(ContentResolver contentResolver, Uri uri) throws NotFoundFromUriException, BadShareTypeException, AlreadySharedException {
 		final String type = contentResolver.getType(uri);
 
 		if (type == null) {
-			throw new BadShareTypeException("Don't know this kind of object : '"+type+"'");
+			throw new BadShareTypeException("Could not determine type of the share");
 		}
 
 		if (type.equals(SharedContact.ANDROID_MIME_TYPE)) {
@@ -85,7 +84,7 @@ public class SharesManager {
 		if (type.startsWith("image/")) {
 			return addImage(contentResolver, uri, type);
 		}
-		throw new BadShareTypeException("Don't know this kind of object : '"+type+"'");
+		throw new BadShareTypeException("Don't know this kind of share : '"+type+"'");
 
 	}
 

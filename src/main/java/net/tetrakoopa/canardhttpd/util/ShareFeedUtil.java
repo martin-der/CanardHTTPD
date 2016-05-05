@@ -1,6 +1,7 @@
 package net.tetrakoopa.canardhttpd.util;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -19,6 +20,8 @@ import net.tetrakoopa.canardhttpd.service.sharing.exception.NotFoundFromUriExcep
 import net.tetrakoopa.mdua.view.util.SystemUIUtil;
 
 public class ShareFeedUtil {
+
+	private final static String TAG = CanardHTTPDService.TAG;
 
 	/*public static boolean addSharedObjectFromIntentParameter(CanardHTTPDActivity canardActivity, SharesManager manager) {
 		final String type = canardActivity.getIntent().getType();
@@ -50,32 +53,33 @@ public class ShareFeedUtil {
 		return false;
 	}*/
 
-	public static boolean tryAddFileToSharesElseNotify(final Context context, SharesManager manager, final Uri uri) {
-		try {
-            final String dontAskPreferenceName = "Shares_Persistance_with_READ_EXTERNAL_CONTEXT";
-			final SharedThing thing = manager.add(context, uri);
-			//Toast.makeText(activity, "Added "+thing.getType()+ " '" + thing.getName() + "'", Toast.LENGTH_SHORT).show();
+	public static boolean tryAddFileToSharesElseNotify(final Context context, SharesManager manager, final Uri... uris) {
+		final ContentResolver contentResolver = context.getContentResolver();
+		boolean success = true;
+		for (Uri uri : uris) {
+			try {
+				final String dontAskPreferenceName = "Shares_Persistance_with_READ_EXTERNAL_CONTEXT";
+				final SharedThing thing = manager.add(contentResolver, uri);
+				Log.i(TAG, "Now sharing '" + uri + "'");
+
 			/*if (manager.unmetRequirements.contains(CanardHTTPDActivity.UNMET_REQUIREMENT.PERMISSION_MISSING_READ_EXTERNAL_STORAGE)) {
-                if (!activity.getDontTellAboutMissingFonctionnaliesPreferences().getBoolean(dontAskPreferenceName, false)) {
-                    final SystemUIUtil.DontShowAgainLinkedToPreference dontShowAgain = new SystemUIUtil.DontShowAgainLinkedToPreference(true, CanardHTTPDActivity.DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME, dontAskPreferenceName);
-                    SystemUIUtil.showOKDialog(activity, activity.message(R.string.title_half_functionnal), activity.message(R.string.message_READ_EXTERNAL_STORAGE_for_share_manager), dontShowAgain);
-                }
+				if (!activity.getDontTellAboutMissingFonctionnaliesPreferences().getBoolean(dontAskPreferenceName, false)) {
+					final SystemUIUtil.DontShowAgainLinkedToPreference dontShowAgain = new SystemUIUtil.DontShowAgainLinkedToPreference(true, CanardHTTPDActivity.DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME, dontAskPreferenceName);
+					SystemUIUtil.showOKDialog(activity, activity.message(R.string.title_half_functionnal), activity.message(R.string.message_READ_EXTERNAL_STORAGE_for_share_manager), dontShowAgain);
+				}
 			}*/
-			return true;
-		} catch (AlreadySharedException e) {
-			//SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), activity.message(R.string.error_file_already_shared));
-			Log.i(CanardHTTPDService.TAG, "Uri '" + uri + "' already shared");
-			return false;
-		} catch (BadShareTypeException e) {
-			Log.i(CanardHTTPDService.TAG, "Uri '" + uri + "' cannot be shared : " + e.getMessage());
-			//Toast.makeText(activity, R.string.error_failed_to_share_this_file_type, Toast.LENGTH_LONG).show();
-			return false;
-		} catch (NotFoundFromUriException e) {
-			final String message = "Uri '" + uri + "' couldn't be found : " + e.getLocalizedMessage();
-			//SystemUIUtil.showOKDialog(activity, activity.message(R.string.error_title_share_failure), message);
-			Log.e(CanardHTTPDService.TAG, message, e);
-			return false;
+			} catch (AlreadySharedException e) {
+				Log.i(TAG, "Uri '" + uri + "' already shared");
+				success = false;
+			} catch (BadShareTypeException e) {
+				Log.w(TAG, "Uri '" + uri + "' cannot be shared : " + e.getMessage());
+				success = false;
+			} catch (NotFoundFromUriException e) {
+				Log.e(TAG, "Uri '" + uri + "' couldn't be found : " + e.getLocalizedMessage(), e);
+				success = false;
+			}
 		}
+		return success;
 	}
 
 	@Deprecated

@@ -226,7 +226,13 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		item.setActionView(R.layout.main_switch);
 		View view = item.getActionView();
 		toggleServerButton = (CompoundButton)view.findViewById(R.id.action_server_toogle_menu);
-		toggleServerButton.setOnCheckedChangeListener(serverSwitchListener);
+		toggleServerButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				final CompoundButton button = (CompoundButton)v;
+				serverSwitchListener.onCheckedChanged(button, button.isChecked());
+			}
+		});
 	}
 
 	public class ServerChangeListener implements ServerStatusChangeListener {

@@ -28,6 +28,7 @@ import net.tetrakoopa.mdua.util.ResourcesUtil;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -286,7 +287,7 @@ public class LogActivity extends AppCompatActivity {
 	private static void createFakeLogEvent(List<EventLog> events, Calendar date, String user, int secondesLater, EventLog.Severity severity, EventLog.Type type, String ... extras) {
 		//date.setTime(date.getTime()+(1000*secondesLater));
 		date.roll(Calendar.SECOND, secondesLater);
-		events.add(new EventLog(severity, type, date.getTime(), user, extras));
+		events.add(new EventLog(severity, type, new Date(date.getTime().getTime()), user, extras));
 	}
 
 	private String message(int id) {

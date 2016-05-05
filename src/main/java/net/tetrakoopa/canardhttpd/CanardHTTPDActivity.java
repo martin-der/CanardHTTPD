@@ -41,13 +41,19 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	public final static String TAG = "CanardHTTPD";
 
-	private boolean intentParametersNeedToBeChecked;
-	private boolean needToCheckPickupActivityReturn;
-
 	private MainAction mainAction;
 
-	MenuItem showActivityMenu;
-	MenuItem showLogMenu;
+	private static class State {
+		final static String ACTIVITY_INTENT_SENT = "activity_intent_sent";
+		final static String PICK_ACTIVITY_RESPONSE_SENT = "pickupActivityResponse_sent";
+
+		private boolean intentSentToService;
+		private boolean pickUpActivityResponseSentToService;
+	}
+	private final State state = new State();
+
+	private MenuItem showActivityMenu;
+	private MenuItem showLogMenu;
 
 
 	private final BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -67,27 +73,49 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	private CanardHTTPDService service;
 	private boolean uiReady = false;
-	private final ServiceExtra serviceExtra = new ServiceExtra() {
-
-	};
+	private final ServiceExtra serviceExtra = new ServiceExtra();
 
 	private static class ServiceExtra {
 		ComponentName componentName;
 		IBinder serviceBinder;
 	}
 
-	private Uri uriFromPickupActivityReturn;
+	private Uri uriFromPickupActivityResponse;
 
-	private Bundle savedInstanceState;
+	//private Bundle savedInstanceState;
 
     private SharedPreferences dontTellAboutMissingFonctionnalies;
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		Log.d(TAG, "Main activity : Save Instance State");
+		super.onSaveInstanceState(outState);
+
+		outState.putBoolean(State.ACTIVITY_INTENT_SENT, state.intentSentToService);
+		outState.putBoolean(State.PICK_ACTIVITY_RESPONSE_SENT, state.pickUpActivityResponseSentToService);
+		Log.d(TAG, "  -> put intentSentToService ("+state.intentSentToService+")");
+		Log.d(TAG, "  -> put pickUpActivityResponseSentToService ("+state.pickUpActivityResponseSentToService+")");
+	}
+	@Override
+	protected void onRestoreInstanceState(Bundle inState) {
+		Log.d(TAG, "Main activity : Restore Instance State");
+		super.onRestoreInstanceState(inState);
+
+		state.intentSentToService = inState.getBoolean(State.ACTIVITY_INTENT_SENT, false);
+		state.pickUpActivityResponseSentToService = inState.getBoolean(State.PICK_ACTIVITY_RESPONSE_SENT, false);
+		Log.d(TAG, "  -> intentSentToService = "+state.intentSentToService);
+		Log.d(TAG, "  -> pickUpActivityResponseSentToService = "+state.pickUpActivityResponseSentToService);
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.d(TAG, "Create Activity");
 		super.onCreate(savedInstanceState);
 
-		this.savedInstanceState = savedInstanceState;
+
+		state.intentSentToService = false;
+		state.pickUpActivityResponseSentToService = false;
+		//this.savedInstanceState = savedInstanceState;
 
 		setContentView(R.layout.activity_canard_httpd);
 
@@ -102,11 +130,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
         final ContractuelUtil.PreferenceSavingAndActivityClosingAcceptanceResponse eulaResponseHandler = new ContractuelUtil.PreferenceSavingAndActivityClosingAcceptanceResponse(this, "legal", "eula.accepted");
 		ContractuelUtil.showForAcceptanceIfNeeded(this, eulaResponseHandler, "legal/apache-licence-2.0.html", R.string.misc_eula_title, android.R.string.yes, android.R.string.no);
 
-		intentParametersNeedToBeChecked = true;
-
-        dontTellAboutMissingFonctionnalies = getApplicationContext().getSharedPreferences(DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME, Context.MODE_PRIVATE);
-
-
+		dontTellAboutMissingFonctionnalies = getApplicationContext().getSharedPreferences(DONT_TELL_ABOUT_MISSING_FONCTIONNALITIES_PREFERENCES_NAME, Context.MODE_PRIVATE);
 
 
 		SystemUIUtil.values_R.strings.dont_show_again = R.string.dont_show_again;
@@ -127,7 +151,14 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 	}
 
 	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		Log.d(TAG, "Prepare menu");
+
+		return super.onPrepareOptionsMenu(menu);
+	}
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
+		Log.d(TAG, "Create menu");
         getMenuInflater().inflate(R.menu.canard_httpd, menu);
 
 		MenuItem item = menu.findItem(R.id.menu_server_toggle);
@@ -148,6 +179,7 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		});*/
 
 		if (service != null) {
+			Log.d(TAG, "Menu created and service already connected => updating UI");
 			updateUI(service.isServerSarted() ? CanardHTTPDService.ServerStatus.UP : CanardHTTPDService.ServerStatus.DOWN);
 		}
 		uiReady = true;
@@ -160,16 +192,31 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 		Log.d(TAG, "Start Activity");
 		super.onStart();
 
-		bindHTTPService();
-
 		LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
 				new IntentFilter(CanardHTTPDService.MESSAGE_INTENT_SERVER_STATE_CHANGE)
 		);
 	}
+
+	@Override
+	public void onResume() {
+		Log.d(TAG, "Resume Activity");
+		super.onResume();
+
+		bindHTTPService();
+
+	}
+	@Override
+	public void onPause() {
+		Log.d(TAG, "Pause Activity");
+		super.onPause();
+
+		unbindHTTPService();
+
+	}
+
 	@Override
 	public void onStop() {
 		Log.d(TAG, "stop Activity");
-		unbindHTTPService();
 		//stopService(intent);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
 		super.onStop();
@@ -183,14 +230,16 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 
 	private void bindHTTPService() {
 		final Intent serviceIntent = new Intent(this, CanardHTTPDService.class);
-		final String action = getIntent().getAction();
-		if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-			IntentUtil.mimicIntent(getIntent(), serviceIntent, Intent.EXTRA_TEXT, Intent.EXTRA_SUBJECT, Intent.EXTRA_STREAM);
+		if (!state.intentSentToService) {
+			final String action = getIntent().getAction();
+			state.intentSentToService = true;
+			if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+				IntentUtil.mimicIntent(getIntent(), serviceIntent, Intent.EXTRA_TEXT, Intent.EXTRA_SUBJECT, Intent.EXTRA_STREAM);
+			}
 		}
 
-		Log.d(TAG, "bind HTTPService");
+		Log.d(TAG, "Bind and start HTTPService");
 		bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
-		Log.d(TAG, "HTTPService binded");
 		startService(serviceIntent);
 	}
 	private void unbindHTTPService() {
@@ -208,16 +257,16 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 			serviceExtra.componentName = componentName;
 			serviceExtra.serviceBinder = serviceBinder;
 
-			if (intentParametersNeedToBeChecked) {
-				intentParametersNeedToBeChecked = false;
-			}
-			if (needToCheckPickupActivityReturn) {
-				needToCheckPickupActivityReturn = false;
-				if (ShareFeedUtil.tryAddFileToSharesElseNotify(CanardHTTPDActivity.this, getService().getSharesManager(), uriFromPickupActivityReturn))
-					mainAction.invalidateListe();
+			if (!state.pickUpActivityResponseSentToService) {
+				state.pickUpActivityResponseSentToService = true;
+				if (uriFromPickupActivityResponse != null) {
+					if (ShareFeedUtil.tryAddFileToSharesElseNotify(CanardHTTPDActivity.this, getService().getSharesManager(), uriFromPickupActivityResponse))
+						mainAction.invalidateListe();
+				}
 			}
 
 			if (uiReady) {
+				Log.d(TAG, "Connected to service and uiReady => updating UI");
 				mainAction.onServiceConnected(componentName, serviceBinder);
 				updateUI(CanardHTTPDActivity.this.service.isServerSarted() ? CanardHTTPDService.ServerStatus.UP : CanardHTTPDService.ServerStatus.DOWN);
 			}
@@ -282,8 +331,8 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 							mainAction.updateSharedThingsList();
 						}
 					} else {
-						needToCheckPickupActivityReturn = true;
-						uriFromPickupActivityReturn = uri;
+						state.pickUpActivityResponseSentToService = false;
+						uriFromPickupActivityResponse = uri;
 					}
 				} catch (Exception e) {
 					Log.e(TAG, "Error while tying to pickup a file", e);

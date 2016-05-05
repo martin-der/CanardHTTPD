@@ -16,12 +16,14 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener.ActionTrigger;
+import net.tetrakoopa.canardhttpd.domain.EventLog;
 import net.tetrakoopa.canardhttpd.preference.ServerAccessPreferencesFragment;
 import net.tetrakoopa.canardhttpd.service.http.CanardHTTPD;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
@@ -29,8 +31,11 @@ import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
 import net.tetrakoopa.mdu.util.ExceptionUtil;
 import net.tetrakoopa.mdua.util.NetworkUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
+import net.tetrakoopa.mdua.view.util.SystemUIUtil;
 
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -76,6 +81,7 @@ public class CanardHTTPDService extends Service {
 
 	private Handler handler;
 
+	private final List<EventLog> logEvents = new ArrayList<>();
 
 	private ServerStatusChangeListener localStatusChangeListener = new ServerStatusChangeListener() {
 		@Override
@@ -85,6 +91,7 @@ public class CanardHTTPDService extends Service {
 			if (ex != null) {
 				intent.putExtra(MESSAGE_INTENT_SERVER_STATE_CHANGE_ERROR, ExceptionUtil.getMessages(ex));
 			}
+			logEvents.add(new EventLog(EventLog.Severity.INFO, status.eventLogtype, new Date(), null));
 			broadcaster.sendBroadcast(intent);
 		}
 	};
@@ -166,7 +173,17 @@ public class CanardHTTPDService extends Service {
 	}
 
 	public enum ServerStatus {
-		DOWN, STARTING, UP, STOPING;
+
+		STARTING(EventLog.Type.SERVER_START_REQUESTED),
+		UP(EventLog.Type.SERVER_STARTED),
+		STOPING(EventLog.Type.SERVER_STOP_REQUESTED),
+		DOWN(EventLog.Type.SERVER_STOPPED);
+
+		private final EventLog.Type eventLogtype;
+
+		ServerStatus(EventLog.Type eventLogtype) {
+			this.eventLogtype = eventLogtype;
+		}
 
 		public static ServerStatus fromOrdinal(int ordinal) {
 			if (ordinal<0 || ordinal>=ServerStatus.values().length) {
@@ -378,11 +395,14 @@ public class CanardHTTPDService extends Service {
 		final String action = intent.getAction();
 		final String type = intent.getType();
 
-		final Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+		if (action==null)
+			return false;
 
 		if (Intent.ACTION_SEND.equals(action) && type != null) {
+			final Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
 			if ("text/plain".equals(type)) {
-				String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+				final String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+				final String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
 				if (sharedText == null) {
 					Log.d(TAG, "'Intent.ACTION_SEND' with null text (uri ='"+uri+"')");
 					return false;
@@ -398,12 +418,16 @@ public class CanardHTTPDService extends Service {
 		}
 
 		if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
-			List<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-			if (uris != null) {
-				// Update UI to reflect multiple images being shared
+			final List<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+			//final Parcelable uris[] = intent.getParcelableArrayExtra(Intent.EXTRA_STREAM);
+			if (uris == null) {
+				Log.w(TAG, "Received multiple send intent with null STREAM");
 				return false;
 			}
-			return false;
+			Log.d(TAG, "Received multiple send intent");
+			ShareFeedUtil.tryAddFileToSharesElseNotify(this, getSharesManager(), uris.toArray(new Uri[uris.size()]));
+			//ShareFeedUtil.tryAddFileToSharesElseNotify(this, getSharesManager(), (Uri[])uris);
+			return true;
 		}
 
 		Log.d(TAG, "Could not handle send intent with action="+action);
