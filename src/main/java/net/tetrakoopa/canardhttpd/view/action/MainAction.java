@@ -42,6 +42,8 @@ import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.mdu.util.ExceptionUtil;
 import net.tetrakoopa.mdua.util.ContractuelUtil;
 import net.tetrakoopa.mdua.util.SystemUtil;
+import net.tetrakoopa.mdua.view.SilentCapableCompoundButton;
+import net.tetrakoopa.mdua.view.SilentCapableSwitch;
 import net.tetrakoopa.mdua.view.util.SystemUIUtil;
 
 import java.util.List;
@@ -50,7 +52,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 
 	private ImageButton aboutButton;
 
-	private CompoundButton toggleServerButton;
+	private SilentCapableSwitch toggleServerButton;
 	//private TextView statusTextView;
 	private TextView publicInfoTextView;
 
@@ -193,7 +195,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 				break;
 			case UP:
 				toggleServerButton.setEnabled(true);
-				toggleServerButton.setChecked(true);
+				toggleServerButton.setCheckedSilently(true);
 				//toggleServerButton.setText(R.string.BUTTON_server_stop);
 				//statusTextView.setText(message(R.string.domain_server_status_running));
 				final String serverInfo = getServerIndexURL();
@@ -208,7 +210,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 				break;
 			case DOWN:
 				toggleServerButton.setEnabled(true);
-				toggleServerButton.setChecked(false);
+				toggleServerButton.setCheckedSilently(false);
 				//toggleServerButton.setText(R.string.BUTTON_server_start);
 				//statusTextView.setText(message(R.string.domain_server_status_stopped));
 				publicInfoTextView.setText("");
@@ -225,14 +227,8 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		MenuItem item = menu.findItem(R.id.menu_server_toggle);
 		item.setActionView(R.layout.main_switch);
 		View view = item.getActionView();
-		toggleServerButton = (CompoundButton)view.findViewById(R.id.action_server_toogle_menu);
-		toggleServerButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				final CompoundButton button = (CompoundButton)v;
-				serverSwitchListener.onCheckedChanged(button, button.isChecked());
-			}
-		});
+		toggleServerButton = (SilentCapableSwitch) view.findViewById(R.id.action_server_toogle_menu);
+		toggleServerButton.setOnCheckedChangeListener(serverSwitchListener);
 	}
 
 	public class ServerChangeListener implements ServerStatusChangeListener {
@@ -301,21 +297,21 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 
 			@Override
 			public void onClick(View element) {
-            final CommonSharedThing thing = (CommonSharedThing) element.getTag();
+				final CommonSharedThing thing = (CommonSharedThing) element.getTag();
 
-            if (thing == null) {
-                CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Oops, tried to delete a null element");
-                return;
-            }
+				if (thing == null) {
+					CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Oops, tried to delete a null element");
+					return;
+				}
 
-            try {
-                MainAction.this.sharesManager().remove(thing);
-            } catch (/* NotShared */Exception ex) {
-                CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Failed to remove : " + ex.getClass().getName(), ex);
-                return;
-            }
-            MainAction.this.updateSharedThingsList();
-            //Toast.makeText(MainAction.this.activity(), "Removed " + thing.getName(), Toast.LENGTH_SHORT).show();
+				try {
+					MainAction.this.sharesManager().remove(thing);
+				} catch (/* NotShared */Exception ex) {
+					CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Failed to remove : " + ex.getClass().getName(), ex);
+					return;
+				}
+				MainAction.this.updateSharedThingsList();
+				//Toast.makeText(MainAction.this.activity(), "Removed " + thing.getName(), Toast.LENGTH_SHORT).show();
 
 			}
 		};
@@ -433,11 +429,11 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 	private CompoundButton.OnCheckedChangeListener serverSwitchListener = new CompoundButton.OnCheckedChangeListener() {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		if (isChecked) {
-			service().start(MainAction.this.activityIntent(), activity(), serverChangeListener);
-		} else {
-			service().stop(serverChangeListener);
-		}
+			if (isChecked) {
+				service().start(MainAction.this.activityIntent(), activity(), serverChangeListener);
+			} else {
+				service().stop(serverChangeListener);
+			}
 		}
 	};
 

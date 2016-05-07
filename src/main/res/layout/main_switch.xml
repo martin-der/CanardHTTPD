@@ -8,7 +8,7 @@
 		android:id="@+id/action_server_toogle_menu"
 		android:layout_width="wrap_content"
 		android:layout_height="fill_parent" /-->
-	<Switch
+	<net.tetrakoopa.mdua.view.SilentCapableSwitch
 		android:id="@+id/action_server_toogle_menu"
 		android:layout_width="wrap_content"
 		android:layout_height="fill_parent"/>
