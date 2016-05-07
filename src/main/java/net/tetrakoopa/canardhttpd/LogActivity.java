@@ -24,6 +24,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import net.tetrakoopa.canardhttpd.domain.EventLog;
+import net.tetrakoopa.canardhttpd.util.TestFactoryUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
 
 import java.util.ArrayList;
@@ -252,42 +253,9 @@ public class LogActivity extends AppCompatActivity {
 		});
 */
 
-		addFakeLogEvents(events, 5);
+		TestFactoryUtil.addFakeLogEvents(events, 5);
 
 		eventLogAdapter.notifyDataSetChanged();
-	}
-
-	private static void addFakeLogEvents(List<EventLog> events, int times) {
-		int i;
-		final Calendar date = new GregorianCalendar();
-		date.roll(Calendar.DAY_OF_MONTH, -1);
-		//date.setTime(date.getTime()-(1000*3600*24*2));
-
-		createFakeLogEvent(events, date, 0, EventLog.Severity.INFO, EventLog.Type.SERVER_START_REQUESTED);
-		createFakeLogEvent(events, date, 1, EventLog.Severity.INFO, EventLog.Type.SERVER_START_FAILED);
-		createFakeLogEvent(events, date, 5, EventLog.Severity.INFO, EventLog.Type.SERVER_START_REQUESTED);
-		createFakeLogEvent(events, date, 4, EventLog.Severity.INFO, EventLog.Type.SERVER_STARTED);
-
-		createFakeLogEvent(events, date, 14, EventLog.Severity.WARN, EventLog.Type.USER_ADDED_RESOURCE, "cat_pic.jpeg");
-		for (i=0; i<times; i++) {
-			//USER_REMOVED_RESOURCE(R.string.eventlog_USER_REMOVED_RESOURCE, Origin.MAIN_ACTIVITY),
-			createFakeLogEvent(events, date, "0.0.0.0", 100, EventLog.Severity.ERROR, EventLog.Type.WEBUSER_REQUESTED_UNKOWN_RESOURCE, "bqsazed");
-			createFakeLogEvent(events, date, 14, EventLog.Severity.WARN, EventLog.Type.USER_ADD_RESOURCE_DENIED_BECAUSE_DUPLICATED, "cat_pic.jpeg");
-			createFakeLogEvent(events, date, "0.0.0.0", 203, EventLog.Severity.INFO, EventLog.Type.WEBUSER_DOWNLOAD_STARTED, "good_music.ogg");
-			createFakeLogEvent(events, date, "0.0.0.0", 200, EventLog.Severity.WARN, EventLog.Type.WEBUSER_REQUESTED_FORBIDEN_RESOURCE, "secret.txt");
-			createFakeLogEvent(events, date, 124, EventLog.Severity.WARN, EventLog.Type.USER_ADD_RESOURCE_DENIED_BECAUSE_DUPLICATED, "cat_pic.jpeg");
-			createFakeLogEvent(events, date, "0.0.0.0", 70, EventLog.Severity.INFO, EventLog.Type.WEBUSER_DOWNLOAD_COMPLETED, "good_music.ogg");
-		}
-		createFakeLogEvent(events, date, 40, EventLog.Severity.INFO, EventLog.Type.SERVER_STOP_REQUESTED);
-		createFakeLogEvent(events, date, 1, EventLog.Severity.INFO, EventLog.Type.SERVER_STOPPED);
-	}
-	private static void createFakeLogEvent(List<EventLog> events, Calendar date, int secondesLater, EventLog.Severity severity, EventLog.Type type, String ... extras) {
-		createFakeLogEvent(events, date, null, secondesLater, severity, type);
-	}
-	private static void createFakeLogEvent(List<EventLog> events, Calendar date, String user, int secondesLater, EventLog.Severity severity, EventLog.Type type, String ... extras) {
-		//date.setTime(date.getTime()+(1000*secondesLater));
-		date.roll(Calendar.SECOND, secondesLater);
-		events.add(new EventLog(severity, type, new Date(date.getTime().getTime()), user, extras));
 	}
 
 	private String message(int id) {
