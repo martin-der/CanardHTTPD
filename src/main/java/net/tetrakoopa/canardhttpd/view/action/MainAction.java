@@ -1,6 +1,7 @@
 package net.tetrakoopa.canardhttpd.view.action;
 
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -292,11 +293,24 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 		public SharedThingAdapter(int textViewResourceId, List<SharedThing> elements) {
 			super(activity, textViewResourceId, elements);
 		}
+
+		private void removeThing(CommonSharedThing thing) {
+			try {
+				MainAction.this.sharesManager().remove(thing);
+			} catch (/* NotShared */Exception ex) {
+				CanardHTTPDActivity.quickLogAndShowInternalError(activity(), "Failed to remove : " + ex.getClass().getName(), ex);
+				return;
+			}
+			MainAction.this.updateSharedThingsList();
+			//Toast.makeText(MainAction.this.activity(), "Removed " + thing.getName(), Toast.LENGTH_SHORT).show();
+
+		}
+
 		
 		private OnClickListener deleteButtonOnClickListener = new OnClickListener() {
 
 			@Override
-			public void onClick(View element) {
+			public void onClick(final View element) {
 				final CommonSharedThing thing = (CommonSharedThing) element.getTag();
 
 				if (thing == null) {
@@ -304,14 +318,18 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 					return;
 				}
 
-				try {
-					MainAction.this.sharesManager().remove(thing);
-				} catch (/* NotShared */Exception ex) {
-					CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Failed to remove : " + ex.getClass().getName(), ex);
-					return;
-				}
-				MainAction.this.updateSharedThingsList();
-				//Toast.makeText(MainAction.this.activity(), "Removed " + thing.getName(), Toast.LENGTH_SHORT).show();
+				SystemUIUtil.showActionCancelDialog(activity(),
+						message(R.string.dialog_confirmation_remove_share_title),
+						message(R.string.dialog_confirmation_remove_share_action_button),
+						messagef(R.string.dialog_confirmation_remove_share_text, thing.getName()),
+						new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						if (which == DialogInterface.BUTTON_POSITIVE) {
+							removeThing(thing);
+						}
+					}
+				});
 
 			}
 		};
@@ -343,7 +361,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
                 return;
             }
 
-            CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Unable to handle share of " + thing.getClass().getName());
+			SystemUtil.shareText(element.getContext(), message(R.string.title_share_sharedfile_url) + " : " + thing.getName(), MainAction.this.getServerIndexURL() + thingName);
 			}
 		};
 

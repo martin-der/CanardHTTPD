@@ -72,6 +72,10 @@
 	<string name="intent_object_share_unknown_resource_address">Link to {{resource.name}}</string>
 	<string name="intent_content_share_unknown_resource_address">Follow this link to access to {{resource.name}} : {{resource.url}}</string>
 
+	<string name="dialog_confirmation_remove_share_title">Share removal</string>
+	<string name="dialog_confirmation_remove_share_text">Do you want to remove \'%s\' ?</string>
+	<string name="dialog_confirmation_remove_share_action_button">Remove</string>
+
 
 	<string name="notification_server_running_on">Server started</string>
     <string name="notification_server_stopped">Server stopped</string>
