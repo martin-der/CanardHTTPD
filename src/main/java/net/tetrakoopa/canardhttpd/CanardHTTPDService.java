@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -211,12 +212,12 @@ public class CanardHTTPDService extends Service {
 		serverKillIntent.putExtra(INTEND_EXTRA_KEY_COMMAND, INTEND_EXTRA_COMMAND_SERVER_KILL);
 		PendingIntent pendingIntentKill = PendingIntent.getBroadcast(this, 0, serverKillIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-		Notification.Builder builder = new Notification.Builder(this);
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
 		builder.setContentTitle(title).setSmallIcon(R.mipmap.canard_httpd_server);
 		builder.setContentText(text).setContentInfo(info);
 		builder.setOngoing(true);
 		builder.addAction(android.R.drawable.stat_sys_download_done, message(R.string.notification_server_action_finish_then_stop), pendingIntentStop);
-		builder.addAction(android.R.drawable.ic_notification_clear_all, message(R.string.notification_server_action_kill), pendingIntentKill);
+		//builder.addAction(android.R.drawable.ic_notification_clear_all, message(R.string.notification_server_action_kill), pendingIntentKill);
 		Notification notification = builder.build();
 
 		notification.contentIntent = PendingIntent.getActivity(this, 0, applicationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
