@@ -61,7 +61,7 @@ android {
 }
 
 dependencies {
-	compile 'com.android.support:appcompat-v7:23.1.0'
+	compile 'com.android.support:appcompat-v7:23.3.0'
 	compile (name: 'mdua-debug', ext: 'aar')
 	compile files('libs/httpcore-4.0.1.jar')
 	compile files('libs/servlet-api-3.0.jar')
