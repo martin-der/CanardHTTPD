@@ -64,6 +64,7 @@ dependencies {
 	compile 'com.android.support:appcompat-v7:23.3.0'
 	compile (name: 'mdua-debug', ext: 'aar')
 	compile files('libs/httpcore-4.0.1.jar')
+	compile files('libs/commons-io-2.5.jar')
 	compile files('libs/servlet-api-3.0.jar')
 	compile files('libs/org.eclipse.jetty.http_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.io_8.1.18.v20150929.jar')

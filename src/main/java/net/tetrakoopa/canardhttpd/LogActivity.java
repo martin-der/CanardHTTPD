@@ -2,8 +2,10 @@ package net.tetrakoopa.canardhttpd;
 
 import android.annotation.TargetApi;
 import android.app.ActionBar;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
@@ -24,9 +26,16 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import net.tetrakoopa.canardhttpd.domain.EventLog;
+import net.tetrakoopa.canardhttpd.service.CanardLogger;
 import net.tetrakoopa.canardhttpd.util.TestFactoryUtil;
+import net.tetrakoopa.mdu.util.ExceptionUtil;
+import net.tetrakoopa.mdua.util.NetworkUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
 
+import org.apache.commons.io.input.Tailer;
+import org.apache.commons.io.input.TailerListenerAdapter;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -37,9 +46,13 @@ import java.util.List;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class LogActivity extends AppCompatActivity {
 
+	private static final String TAG = CanardHTTPDActivity.TAG+".Logger";
+
 	private ListView eventsLogList;
 	private EventLogAdapter eventLogAdapter;
 	private final List<EventLog> events = new ArrayList<>();
+
+	private TailLogTask tailLogTask;
 
 	public class SeveritySpinnerAdapter extends BaseAdapter {
 
@@ -181,7 +194,7 @@ public class LogActivity extends AppCompatActivity {
 
 
 				final String messageFmt = message(event.getMessage());
-				name.setText(String.format(messageFmt, event.getExtras()));
+				name.setText(String.format(messageFmt, (Object[])event.getExtras()));
 
 				date.setText(DateUtils.getRelativeDateTimeString(LogActivity.this, event.getDate().getTime(), 0, 0, DateUtils.FORMAT_SHOW_WEEKDAY));
 
@@ -253,9 +266,84 @@ public class LogActivity extends AppCompatActivity {
 		});
 */
 
-		TestFactoryUtil.addFakeLogEvents(events, 5);
+		//TestFactoryUtil.addFakeLogEvents(events, 5);
 
 		eventLogAdapter.notifyDataSetChanged();
+	}
+
+
+	private final static String newEventsLock = new String("TailLogTask-Event-Lock");
+
+	public class TailLogTask extends AsyncTask<File, Integer, Void> {
+
+		private Tailer tailer;
+
+		private final List<EventLog> newEvents = new ArrayList<>();
+
+		private void pushEvent(EventLog event) {
+			synchronized (newEventsLock) {
+				newEvents.add(event);
+			}
+		}
+		private EventLog[] popEvent() {
+			final EventLog events[];
+			synchronized (newEventsLock) {
+				events = newEvents.toArray(new EventLog[newEvents.size()]);
+				newEvents.clear();
+			}
+			return events;
+		}
+
+		private class LogTailerListener extends TailerListenerAdapter {
+
+
+			@Override
+			public void handle(String line) {
+				final EventLog event;
+				try {
+					final String tokens[] = line.split("\\|");
+					final EventLog.Severity severity = EventLog.Severity.valueOf(tokens[0]);
+					final EventLog.Type type = EventLog.Type.valueOf(tokens[1]);
+					event = new EventLog(severity, type);
+				} catch(Exception ex) {
+					Log.e(TAG, "malformed log line", ex);
+					return;
+				}
+				pushEvent(event);
+				TailLogTask.this.publishProgress(1);
+			}
+		}
+
+		protected Void doInBackground(File... files) {
+			tailer = new Tailer(files[0], new LogTailerListener(), 1000);
+			tailer.run();
+			return null;
+		}
+
+		@Override
+		public void onProgressUpdate(Integer... progress) {
+			final EventLog newEvents[] = popEvent();
+			for (EventLog event : newEvents)
+				events.add(event);
+			eventLogAdapter.notifyDataSetChanged();
+		}
+
+		public void stop() {
+			tailer.stop();
+		}
+	}
+	@Override
+	public void onResume() {
+		super.onResume();
+
+		tailLogTask = new TailLogTask();
+		// FIXME FIXME FIXME : disabled for now since activity locks after all events are read
+		//tailLogTask.doInBackground(CanardLogger.getLocation(this));
+	}
+	@Override
+	public void onStop() {
+		super.onStop();
+		tailLogTask.stop();
 	}
 
 	private String message(int id) {
