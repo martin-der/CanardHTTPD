@@ -5,7 +5,6 @@ import android.app.ActionBar;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
@@ -19,7 +18,6 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -27,9 +25,6 @@ import android.widget.TextView;
 
 import net.tetrakoopa.canardhttpd.domain.EventLog;
 import net.tetrakoopa.canardhttpd.service.CanardLogger;
-import net.tetrakoopa.canardhttpd.util.TestFactoryUtil;
-import net.tetrakoopa.mdu.util.ExceptionUtil;
-import net.tetrakoopa.mdua.util.NetworkUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
 
 import org.apache.commons.io.input.Tailer;
@@ -37,9 +32,7 @@ import org.apache.commons.io.input.TailerListenerAdapter;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 
@@ -53,6 +46,8 @@ public class LogActivity extends AppCompatActivity {
 	private final List<EventLog> events = new ArrayList<>();
 
 	private TailLogTask tailLogTask;
+
+	private final static String tailerLock = new String("Tailer-Lock");
 
 	public class SeveritySpinnerAdapter extends BaseAdapter {
 
@@ -222,13 +217,16 @@ public class LogActivity extends AppCompatActivity {
 		clearLogMenu.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menu) {
-				try {
-					CanardLogger.getLocation(LogActivity.this).delete();
-				} catch (Exception ex) {
-					Log.w(TAG, "Error while removing log file");
-					return true;
+				synchronized (tailerLock) {
+					try {
+						CanardLogger.getLocation(LogActivity.this).delete();
+					} catch (Exception ex) {
+						Log.w(TAG, "Error while removing log file");
+						return true;
+					}
+					events.clear();
+					eventLogAdapter.notifyDataSetChanged();
 				}
-				eventLogAdapter.notifyDataSetChanged();
 				return true;
 			}
 		});
@@ -277,7 +275,6 @@ public class LogActivity extends AppCompatActivity {
 	}
 
 
-	private final static String newEventsLock = new String("TailLogTask-Event-Lock");
 
 	public class TailLogTask extends AsyncTask<File, Integer, Void> {
 
@@ -286,13 +283,13 @@ public class LogActivity extends AppCompatActivity {
 		private final List<EventLog> newEvents = new ArrayList<>();
 
 		private void pushEvent(EventLog event) {
-			synchronized (newEventsLock) {
+			synchronized (tailerLock) {
 				newEvents.add(event);
 			}
 		}
 		private EventLog[] popEvent() {
 			final EventLog events[];
-			synchronized (newEventsLock) {
+			synchronized (tailerLock) {
 				events = newEvents.toArray(new EventLog[newEvents.size()]);
 				newEvents.clear();
 			}
