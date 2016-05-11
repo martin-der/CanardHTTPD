@@ -9,6 +9,7 @@ import net.tetrakoopa.canardhttpd.domain.EventLog;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 
 public class CanardLogger {
 
@@ -31,12 +32,15 @@ public class CanardLogger {
 	}
 
 	public synchronized void log(EventLog event) {
+		log(event.getSeverity(), event.getType(), event.getDate(), event.getUser(), event.getExtras());
+	}
+	public void log(EventLog.Severity severity, EventLog.Type type, Date date, String user, String... extras) {
 		try {
-			writer.append(event.getSeverity().name());
+			writer.append(severity.name());
 			writer.append("|");
-			writer.append(event.getType().name());
+			writer.append(type.name());
 			writer.append("|");
-			writer.append(event.getDate() == null ? "" :String.valueOf(event.getDate().getTime()));
+			writer.append(date == null ? "" :String.valueOf(date.getTime()));
 //			writer.append("|");
 //			writer.append(message);
 			writer.append("\n");
