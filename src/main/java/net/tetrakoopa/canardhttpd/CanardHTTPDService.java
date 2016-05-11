@@ -26,6 +26,7 @@ import android.widget.Toast;
 import net.tetrakoopa.canardhttpd.CanardHTTPDService.ServerStatusChangeListener.ActionTrigger;
 import net.tetrakoopa.canardhttpd.domain.EventLog;
 import net.tetrakoopa.canardhttpd.preference.ServerAccessPreferencesFragment;
+import net.tetrakoopa.canardhttpd.service.CanardLogger;
 import net.tetrakoopa.canardhttpd.service.http.CanardHTTPD;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
@@ -34,6 +35,7 @@ import net.tetrakoopa.mdua.util.NetworkUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
 import net.tetrakoopa.mdua.view.util.SystemUIUtil;
 
+import java.io.IOException;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -73,6 +75,7 @@ public class CanardHTTPDService extends Service {
 	private final SharesManager sharesManager = new SharesManager();
 
 	private CanardHTTPD server;
+	private CanardLogger logger;
 
 	private Intent applicationIntent;
 	private LocalBroadcastManager broadcaster;
@@ -111,6 +114,9 @@ public class CanardHTTPDService extends Service {
 	public SharesManager getSharesManager() {
 		return sharesManager;
 	}
+	public CanardLogger getLogger() {
+		return logger;
+	}
 
 	@Override
 	public void onCreate() {
@@ -122,6 +128,11 @@ public class CanardHTTPDService extends Service {
 		broadcaster = LocalBroadcastManager.getInstance(this);
 		Log.d(TAG, "onCreate");
 
+		try {
+			logger = new CanardLogger(this, "canard-log.txt");
+		} catch (IOException ioex) {
+			Log.e(TAG, "Unable to init logger", ioex);
+		}
 
 		PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
 			@Override
@@ -142,6 +153,11 @@ public class CanardHTTPDService extends Service {
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
+		try {
+			logger.close();
+		} catch (IOException ioex) {
+			Log.e(TAG, "Error while closing logger", ioex);
+		}
 	}
 
 	@Override
@@ -251,11 +267,13 @@ public class CanardHTTPDService extends Service {
 			listener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.STARTING, null);
 		try {
 			Log.d(TAG, "HTTP Server : creating...");
-			server = new CanardHTTPD(canardHTTPDActivity, sharesManager, null, requestedPort, requestedSecurePort, "file:///android_asset/security/martin.home.crt", "martin home");
+			logger.log(new EventLog(EventLog.Severity.INFO, EventLog.Type.SERVER_START_REQUESTED));
+			server = new CanardHTTPD(this, sharesManager, null, requestedPort, requestedSecurePort, "file:///android_asset/security/martin.home.crt", "martin home");
 			Log.d(TAG, "HTTP Server : starting...");
 			server.start();
 			//server.join();
 			Log.i(TAG, "HTTP Server : Up");
+			logger.log(new EventLog(EventLog.Severity.INFO, EventLog.Type.SERVER_STARTED));
 			localStatusChangeListener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.UP, null);
 			if (listener != null)
 				listener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.UP, null);
@@ -263,7 +281,8 @@ public class CanardHTTPDService extends Service {
 		} catch (Exception ex) {
 			server = null;
 			Log.e(TAG, "HTTP server : Start failed", ex);
-			localStatusChangeListener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.DOWN, null);
+			logger.log(new EventLog(EventLog.Severity.ERROR, EventLog.Type.SERVER_START_FAILED));
+			localStatusChangeListener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.DOWN, ex);
 			if (listener != null)
 				listener.onServerStatusChange(this, ActionTrigger.START, ServerStatus.DOWN, ex);
 		}
@@ -272,11 +291,14 @@ public class CanardHTTPDService extends Service {
 	public void stop(ServerStatusChangeListener listener) {
 		try {
 			Log.d(TAG, "HTTP Server : stoping...");
+			logger.log(new EventLog(EventLog.Severity.INFO, EventLog.Type.SERVER_STOP_REQUESTED));
 			stopHTTPDServer(listener);
 			Log.i(TAG, "HTTP Server : Down");
+			logger.log(new EventLog(EventLog.Severity.INFO, EventLog.Type.SERVER_STOPPED));
 			removeNotification();
 		} catch (Exception ex) {
 			Log.e(TAG, "HTTP Server : Stop Failed", ex);
+			logger.log(new EventLog(EventLog.Severity.ERROR, EventLog.Type.SERVER_STOP_FAILED));
 		}
 		stopSelf();
 	}
@@ -301,7 +323,7 @@ public class CanardHTTPDService extends Service {
 			removeNotification();
 		} catch (Exception ex) {
 			Log.e(TAG, "Stop server failed", ex);
-			localStatusChangeListener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.DOWN, null);
+			localStatusChangeListener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.DOWN, ex);
 			if (listener != null)
 				listener.onServerStatusChange(this, ActionTrigger.STOP, ServerStatus.DOWN, ex);
 		}
@@ -402,14 +424,14 @@ public class CanardHTTPDService extends Service {
 		if (Intent.ACTION_SEND.equals(action) && type != null) {
 			final Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
 			if ("text/plain".equals(type)) {
-				final String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+				final String text = intent.getStringExtra(Intent.EXTRA_TEXT);
 				final String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
-				if (sharedText == null) {
+				if (text == null) {
 					Log.d(TAG, "'Intent.ACTION_SEND' with null text (uri ='"+uri+"')");
 					return false;
 				}
 				Log.d(TAG, "Received send intent with text");
-				Toast.makeText(this, "Received : "+sharedText, Toast.LENGTH_SHORT).show();
+				Toast.makeText(this, "Received : "+text, Toast.LENGTH_SHORT).show();
 				// Update UI to reflect text being shared
 				return true;
 			}
