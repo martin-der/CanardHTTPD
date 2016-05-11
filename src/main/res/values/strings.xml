@@ -100,7 +100,7 @@
     <string name="error_failed_server_status">Failed to get server\'s status</string>
     <string name="error_failed_server_unknown_operation">Failed to \'manipulate\' server</string>
     <string name="error_server_disconnection">Lost connection to server</string>
-    <string name="error_explain__could_not_bind">Could no bind port for server. Maybe some other process is already listening on the same port.</string>
+    <string name="error_explain__could_not_bind">Could no bind port %d. Maybe some other process is already listening on this port.</string>
     <string name="error_explain__error_unknown_server_error">An unexpected error occurred.</string>
 
     <string name="error_activity_param_null_mime_type">Unable to guess type of element to share.</string>

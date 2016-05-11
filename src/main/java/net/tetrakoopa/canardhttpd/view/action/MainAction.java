@@ -246,7 +246,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 			if (ex != null) {
 				final String messageExplain;
 				if (ex instanceof java.net.BindException) {
-					messageExplain = message(R.string.error_explain__could_not_bind);
+					messageExplain = messagef(R.string.error_explain__could_not_bind, service.getPort());
 				} else {
 					messageExplain = message(R.string.error_explain__error_unknown_server_error);
 				}
