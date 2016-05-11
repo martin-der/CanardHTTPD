@@ -2,6 +2,7 @@
 allprojects {
     repositories {
         jcenter()
+        mavenCentral()
     }
     tasks.withType(JavaCompile) {
         options.incremental = true
@@ -63,19 +64,23 @@ android {
 dependencies {
 	compile 'com.android.support:appcompat-v7:23.3.0'
 	compile (name: 'mdua-debug', ext: 'aar')
-	compile files('libs/httpcore-4.0.1.jar')
-	compile files('libs/commons-io-2.5.jar')
-	compile files('libs/servlet-api-3.0.jar')
-	compile files('libs/org.eclipse.jetty.http_8.1.18.v20150929.jar')
+	//compile files('libs/httpcore-4.0.1.jar')
+	compile 'org.apache.httpcomponents:httpcore:4.0.1'
+	//compile files('libs/commons-io-2.5.jar')
+	compile 'commons-io:commons-io:2.5'
+	//compile files('libs/servlet-api-3.0.jar')
+	//compile 'javax.servlet:javax.servlet-api:3.0.1'
+	//compile files('libs/org.eclipse.jetty.server_8.1.18.v20150929.jar')
+	compile 'org.eclipse.jetty:jetty-server:8.1.18.v20150929'
+	/*compile files('libs/org.eclipse.jetty.http_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.io_8.1.18.v20150929.jar')
-	compile files('libs/org.eclipse.jetty.server_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.util_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.webapp_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.policy_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.security_8.1.18.v20150929.jar')
-	//compile files('libs/org.eclipse.jetty.client_8.1.18.v20150929.jar')
-	compile files('libs/org.eclipse.jetty.continuation_8.1.18.v20150929.jar')
-	//compile files('libs/org.eclipse.jetty.nested_8.1.18.v20150929.jar')
 	compile files('libs/org.eclipse.jetty.plus_8.1.18.v20150929.jar')
+	compile files('libs/org.eclipse.jetty.continuation_8.1.18.v20150929.jar')*/
+	//compile files('libs/org.eclipse.jetty.client_8.1.18.v20150929.jar')
+	//compile files('libs/org.eclipse.jetty.nested_8.1.18.v20150929.jar')
 }
 
