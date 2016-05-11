@@ -35,6 +35,8 @@ public class CanardLogger {
 			writer.append(event.getSeverity().name());
 			writer.append("|");
 			writer.append(event.getType().name());
+			writer.append("|");
+			writer.append(event.getDate() == null ? "" :String.valueOf(event.getDate().getTime()));
 //			writer.append("|");
 //			writer.append(message);
 			writer.append("\n");

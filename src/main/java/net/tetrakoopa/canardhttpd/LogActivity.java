@@ -222,7 +222,12 @@ public class LogActivity extends AppCompatActivity {
 		clearLogMenu.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menu) {
-				eventLogAdapter.events.clear();
+				try {
+					CanardLogger.getLocation(LogActivity.this).delete();
+				} catch (Exception ex) {
+					Log.w(TAG, "Error while removing log file");
+					return true;
+				}
 				eventLogAdapter.notifyDataSetChanged();
 				return true;
 			}
@@ -304,7 +309,9 @@ public class LogActivity extends AppCompatActivity {
 					final String tokens[] = line.split("\\|");
 					final EventLog.Severity severity = EventLog.Severity.valueOf(tokens[0]);
 					final EventLog.Type type = EventLog.Type.valueOf(tokens[1]);
-					event = new EventLog(severity, type);
+					final String strDate = tokens[2];
+					final Date date = "".equals(strDate) ? null : new Date(Long.valueOf(strDate));
+					event = new EventLog(severity, type, date, null);
 				} catch(Exception ex) {
 					Log.e(TAG, "malformed log line", ex);
 					return;
@@ -337,8 +344,7 @@ public class LogActivity extends AppCompatActivity {
 		super.onResume();
 
 		tailLogTask = new TailLogTask();
-		// FIXME FIXME FIXME : disabled for now since activity locks after all events are read
-		//tailLogTask.doInBackground(CanardLogger.getLocation(this));
+		tailLogTask.execute(CanardLogger.getLocation(this));
 	}
 	@Override
 	public void onStop() {
