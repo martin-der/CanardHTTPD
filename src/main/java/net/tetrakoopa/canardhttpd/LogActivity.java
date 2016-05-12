@@ -83,6 +83,8 @@ public class LogActivity extends AppCompatActivity {
 				icon.setImageResource(R.mipmap.severity_warn);
 			else if (severity == EventLog.Severity.INFO)
 				icon.setImageResource(R.mipmap.severity_info);
+			else if (severity == EventLog.Severity.DEBUG)
+				icon.setImageResource(R.mipmap.severity_debug);
 
 			return view;
 		}
