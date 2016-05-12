@@ -26,8 +26,13 @@
 		android:title="@string/menu_reset_filters">
 	</item>
 	<item
-		android:id="@+id/action_menu_clear_log"
+		android:id="@+id/action_menu_export_log"
 		android:orderInCategory="500"
+		android:title="@string/menu_export_log">
+	</item>
+	<item
+		android:id="@+id/action_menu_clear_log"
+		android:orderInCategory="501"
 		android:title="@string/menu_clear_log">
 	</item>
 

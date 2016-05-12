@@ -220,9 +220,10 @@ public class LogActivity extends AppCompatActivity {
 		final MenuItem severityFilterMenu = menu.findItem(R.id.filter_severity);
 		final Spinner logSeverityFilter = (Spinner)MenuItemCompat.getActionView(severityFilterMenu);
 
-		MenuItem clearLogMenu = menu.findItem(R.id.action_menu_clear_log);
+		final MenuItem clearLog = menu.findItem(R.id.action_menu_clear_log);
+		final MenuItem exportLog = menu.findItem(R.id.action_menu_export_log);
 
-		clearLogMenu.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+		clearLog.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menu) {
 				synchronized (tailerLock) {
@@ -234,6 +235,20 @@ public class LogActivity extends AppCompatActivity {
 					}
 					events.clear();
 					eventLogAdapter.notifyDataSetChanged();
+				}
+				return true;
+			}
+		});
+
+		exportLog.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menu) {
+				synchronized (tailerLock) {
+					try {
+					} catch (Exception ex) {
+						Log.e(TAG, "Error while exporting log file");
+						return true;
+					}
 				}
 				return true;
 			}

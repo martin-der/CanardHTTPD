@@ -53,10 +53,8 @@
 	<string name="menu_set_filter_date">Filter date</string>
 	<string name="menu_reset_filters">Reset filters</string>
 	<string name="menu_clear_log">Clear logs</string>
+	<string name="menu_export_log">Export logs</string>
 
-
-
-	<string name="explain_action_clear_log">Clear the log history</string>
 
     <string name="notification_server_status_no_download">Nothing being downloaded</string>
     <string name="notification_server_status_download_in_progress">%1$d resource(s) being downloaded</string>
