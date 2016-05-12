@@ -19,7 +19,6 @@ public class CanardLogger {
 
 	public CanardLogger(Context context, String filename) throws IOException {
 		final File location = getLocation(context);
-		//final File location = new File(Environment.getExternalStorageDirectory(), filename);
 		writer = new FileWriter(location, true);
 	}
 
@@ -41,47 +40,39 @@ public class CanardLogger {
 			writer.append(type.name());
 			writer.append("|");
 			writer.append(date == null ? "" :String.valueOf(date.getTime()));
-//			writer.append("|");
-//			writer.append(message);
+			writer.append("|");
+			writer.append(user == null ? "" :user);
 			writer.append("\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void d(String message) {
-		d(message, null);
+	public void d(EventLog.Type type, String... extras) {
+		d(type, new Date(), null, extras);
 	}
-	public static void d(String message, Throwable throwable) {
-		//log(null, message, throwable);
-		Log.d(TAG, message, throwable);
-	}
-
-	public static void v(String message) {
-		v(message, null);
-	}
-	public static void v(String message, Throwable throwable) {
-		Log.v(TAG, message, throwable);
+	public void d(EventLog.Type type, Date date, String user, String... extras) {
+		log(EventLog.Severity.DEBUG, type, date, user, extras);
 	}
 
-	public static void i(String message) {
-		i(message, null);
+	public void i(EventLog.Type type, String... extras) {
+		i(type, new Date(), null, extras);
 	}
-	public static void i(String message, Throwable throwable) {
-		Log.i(TAG, message, throwable);
-	}
-
-	public static void w(String message) {
-		w(message, null);
-	}
-	public static void w(String message, Throwable throwable) {
-		Log.w(TAG, message, throwable);
+	public void i(EventLog.Type type, Date date, String user, String... extras) {
+		log(EventLog.Severity.INFO, type, date, user, extras);
 	}
 
-	public static void e(String message) {
-		e(message, null);
+	public void w(EventLog.Type type, String... extras) {
+		w(type, new Date(), null, extras);
 	}
-	public static void e(String message, Throwable throwable) {
-		Log.e(TAG, message, throwable);
+	public void w(EventLog.Type type, Date date, String user, String... extras) {
+		log(EventLog.Severity.WARN, type, date, user, extras);
+	}
+
+	public void e(EventLog.Type type, String... extras) {
+		e(type, new Date(), null, extras);
+	}
+	public void e(EventLog.Type type, Date date, String user, String... extras) {
+		log(EventLog.Severity.ERROR, type, date, user, extras);
 	}
 }

@@ -104,6 +104,8 @@ public class LogActivity extends AppCompatActivity {
 				icon.setImageResource(R.mipmap.severity_warn);
 			else if (severity == EventLog.Severity.INFO)
 				icon.setImageResource(R.mipmap.severity_info);
+			else if (severity == EventLog.Severity.DEBUG)
+				icon.setImageResource(R.mipmap.severity_debug);
 
 
 			if (severity == EventLog.Severity.ERROR)
@@ -112,6 +114,8 @@ public class LogActivity extends AppCompatActivity {
 				label.setText(R.string.domain_message_severity_warning);
 			else if (severity == EventLog.Severity.INFO)
 				label.setText(R.string.domain_message_severity_information);
+			else if (severity == EventLog.Severity.DEBUG)
+				label.setText(R.string.domain_message_severity_debug);
 
 			return view;
 		}
@@ -184,6 +188,8 @@ public class LogActivity extends AppCompatActivity {
 					severity.setImageResource(R.mipmap.severity_warn);
 				else if (event.getSeverity() == EventLog.Severity.INFO)
 					severity.setImageResource(R.mipmap.severity_info);
+				else if (event.getSeverity() == EventLog.Severity.DEBUG)
+					severity.setImageResource(R.mipmap.severity_debug);
 				severity.setScaleX(0.5f);
 				severity.setScaleY(0.5f);
 

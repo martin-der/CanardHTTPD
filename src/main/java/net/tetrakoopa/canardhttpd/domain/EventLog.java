@@ -8,7 +8,7 @@ import java.util.ServiceConfigurationError;
 public class EventLog {
 
 	public enum Severity {
-		INFO, WARN, ERROR
+		DEBUG, INFO, WARN, ERROR
 	}
 
 	public enum Origin {

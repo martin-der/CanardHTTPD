@@ -38,6 +38,7 @@
 	<string name="domain_message_severity_error">Error</string>
 	<string name="domain_message_severity_warning">Warning</string>
 	<string name="domain_message_severity_information">Information</string>
+	<string name="domain_message_severity_debug">Debug</string>
 
     <string name="generic_unknown">Unknown</string>
 
