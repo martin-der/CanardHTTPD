@@ -25,12 +25,18 @@ import android.widget.TextView;
 
 import net.tetrakoopa.canardhttpd.domain.EventLog;
 import net.tetrakoopa.canardhttpd.service.CanardLogger;
+import net.tetrakoopa.mdu.util.FileUtil;
 import net.tetrakoopa.mdua.util.ResourcesUtil;
+import net.tetrakoopa.mdua.util.SystemUtil;
+import net.tetrakoopa.mdua.view.util.SystemUIUtil;
 
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListenerAdapter;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -245,6 +251,10 @@ public class LogActivity extends AppCompatActivity {
 			public boolean onMenuItemClick(MenuItem menu) {
 				synchronized (tailerLock) {
 					try {
+						// FIXME probably won't work with huge log file
+						//       => use stream from log file if possible
+						final String logs = FileUtil.readCharSequence(new FileInputStream(CanardLogger.getLocation(LogActivity.this))).toString();
+						SystemUtil.shareText(LogActivity.this, "Send logs	", logs, "Canard HTTPD Log");
 					} catch (Exception ex) {
 						Log.e(TAG, "Error while exporting log file");
 						return true;
