@@ -55,8 +55,12 @@
 	<string name="menu_clear_log">Clear logs</string>
 	<string name="menu_export_log">Export logs</string>
 
+	<string name="dialog_clear_log_title">Clear logs</string>
+	<string name="dialog_clear_log_message">Do you want to clear logs ?</string>
+	<string name="dialog_clear_log_action">Clear</string>
 
-    <string name="notification_server_status_no_download">Nothing being downloaded</string>
+
+	<string name="notification_server_status_no_download">Nothing being downloaded</string>
     <string name="notification_server_status_download_in_progress">%1$d resource(s) being downloaded</string>
     <string name="notification_server_action_finish_then_stop">Stop</string>
     <string name="notification_server_action_kill">Kill</string>

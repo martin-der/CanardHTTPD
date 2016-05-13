@@ -2,6 +2,7 @@ package net.tetrakoopa.canardhttpd;
 
 import android.annotation.TargetApi;
 import android.app.ActionBar;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -210,8 +211,8 @@ public class LogActivity extends AppCompatActivity {
 				if (event.getUser() != null)
 					user.setText(event.getUser());
 
-			} catch(Exception z) {
-				Log.d("LOG", "z = "+z, z);
+			} catch(Exception ex) {
+				Log.d(TAG, "error building view with for a log line", ex);
 			}
 
 
@@ -232,16 +233,25 @@ public class LogActivity extends AppCompatActivity {
 		clearLog.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menu) {
-				synchronized (tailerLock) {
-					try {
-						CanardLogger.getLocation(LogActivity.this).delete();
-					} catch (Exception ex) {
-						Log.w(TAG, "Error while removing log file");
-						return true;
+				SystemUIUtil.showActionCancelDialog(LogActivity.this,
+						message(R.string.dialog_clear_log_title),
+						message(R.string.dialog_clear_log_action),
+						message(R.string.dialog_clear_log_message),
+						new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						synchronized (tailerLock) {
+							try {
+								CanardLogger.getLocation(LogActivity.this).delete();
+							} catch (Exception ex) {
+								Log.w(TAG, "Error while removing log file");
+								return;
+							}
+							events.clear();
+							eventLogAdapter.notifyDataSetChanged();
+						}
 					}
-					events.clear();
-					eventLogAdapter.notifyDataSetChanged();
-				}
+				});
 				return true;
 			}
 		});
