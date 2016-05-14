@@ -233,25 +233,27 @@ public class LogActivity extends AppCompatActivity {
 		clearLog.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menu) {
-				SystemUIUtil.showActionCancelDialog(LogActivity.this,
-						message(R.string.dialog_clear_log_title),
-						message(R.string.dialog_clear_log_action),
-						message(R.string.dialog_clear_log_message),
-						new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						synchronized (tailerLock) {
-							try {
-								CanardLogger.getLocation(LogActivity.this).delete();
-							} catch (Exception ex) {
-								Log.w(TAG, "Error while removing log file");
-								return;
+			SystemUIUtil.showActionCancelDialog(LogActivity.this,
+					message(R.string.dialog_clear_log_title),
+					message(R.string.dialog_clear_log_action),
+					message(R.string.dialog_clear_log_message),
+					new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							synchronized (tailerLock) {
+								try {
+									CanardLogger.getLocation(LogActivity.this).delete();
+								} catch (Exception ex) {
+									Log.w(TAG, "Error while removing log file");
+									return;
+								}
+								events.clear();
+								eventLogAdapter.notifyDataSetChanged();
 							}
-							events.clear();
-							eventLogAdapter.notifyDataSetChanged();
 						}
-					}
-				});
+					},
+					android.R.drawable.ic_delete
+			);
 				return true;
 			}
 		});

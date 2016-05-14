@@ -311,26 +311,27 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 
 			@Override
 			public void onClick(final View element) {
-				final CommonSharedThing thing = (CommonSharedThing) element.getTag();
+			final CommonSharedThing thing = (CommonSharedThing) element.getTag();
 
-				if (thing == null) {
-					CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Oops, tried to delete a null element");
-					return;
-				}
-
-				SystemUIUtil.showActionCancelDialog(activity(),
-						message(R.string.dialog_confirmation_remove_share_title),
-						message(R.string.dialog_confirmation_remove_share_action_button),
-						messagef(R.string.dialog_confirmation_remove_share_text, thing.getName()),
-						new DialogInterface.OnClickListener() {
+			if (thing == null) {
+				CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Oops, tried to delete a null element");
+				return;
+			}
+		
+			SystemUIUtil.showActionCancelDialog(activity(),
+				message(R.string.dialog_confirmation_remove_share_title),
+				message(R.string.dialog_confirmation_remove_share_action_button),
+				messagef(R.string.dialog_confirmation_remove_share_text, thing.getName()),
+				new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						if (which == DialogInterface.BUTTON_POSITIVE) {
 							removeThing(thing);
 						}
 					}
-				});
-
+				},
+				android.R.drawable.ic_delete
+			);
 			}
 		};
 		
