@@ -1,13 +1,13 @@
 package net.tetrakoopa.canardhttpd.service.http;
 
 import android.content.ContentResolver;
-import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
 import net.tetrakoopa.canardhttpd.CanardHTTPDActivity;
 import net.tetrakoopa.canardhttpd.CanardHTTPDService;
 import net.tetrakoopa.canardhttpd.R;
+import net.tetrakoopa.canardhttpd.domain.EventLog;
 import net.tetrakoopa.canardhttpd.domain.common.SharedCollection;
 import net.tetrakoopa.canardhttpd.domain.common.SharedThing;
 import net.tetrakoopa.canardhttpd.domain.metafs.BreadCrumb;
@@ -53,6 +53,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,8 @@ public class CanardHTTPD extends Server {
 
 	private final List<SpecificSerialisedWriter> typeMimeWriters = new ArrayList<>();
 
-	private final Context context;
+	private final CanardHTTPDService service;
+	private final CanardLogger logger;
 	private final SharesManager sharesManager;
 
 	private TextWriter textWriter;
@@ -89,25 +91,26 @@ public class CanardHTTPD extends Server {
 
 
 
-	public CanardHTTPD(Context context, SharesManager sharesManager, String hostname, int port, int sercurePort, String keyStorePath, String keyStorePassord) {
+	public CanardHTTPD(CanardHTTPDService service, SharesManager sharesManager, String hostname, int port, int sercurePort, String keyStorePath, String keyStorePassord) {
 		this.sharesManager = sharesManager;
-		this.context = context;
+		this.service = service;
+		this.logger = service.getLogger();
 
 
-		this.title = context.getString(R.string.app_name);
+		this.title = this.service.getString(R.string.app_name);
 
 		init_Jetty_v8(port, sercurePort, keyStorePath, keyStorePassord);
 	}
 
 	private void makeWriters(String httpContext) {
-		this.directoryWriter = new DirectoryWriter(context, httpContext);
-		this.groupWriter = new GroupWriter(context, httpContext);
-		this.textWriter = new TextWriter(context, httpContext);
-		this.genericWriter = new GenericStreamWriter(context, httpContext);
+		this.directoryWriter = new DirectoryWriter(service, httpContext);
+		this.groupWriter = new GroupWriter(service, httpContext);
+		this.textWriter = new TextWriter(service, httpContext);
+		this.genericWriter = new GenericStreamWriter(service, httpContext);
 
 
-		this.typeMimeWriters.add(new VCardWriter(context, httpContext));
-		this.typeMimeWriters.add(new ImageWriter(context, httpContext));
+		this.typeMimeWriters.add(new VCardWriter(service, httpContext));
+		this.typeMimeWriters.add(new ImageWriter(service, httpContext));
 
 	}
 
@@ -157,23 +160,23 @@ public class CanardHTTPD extends Server {
 				final String contextPath = request.getContextPath();
 				makeWriters(contextPath != null ? contextPath: "");
 			}
-			CanardLogger.i("Request from '" + request.getRemoteAddr() + "' for '" + request.getRequestURI() + "'");
+			logger.i(EventLog.Type.WEBUSER_DOWNLOAD_STARTED, new Date(), request.getRemoteAddr(), request.getRequestURI());
 			final long begin = System.nanoTime();
 			try {
 				serve(request, response);
 				((Request) request).setHandled(true);
 				final long end = System.nanoTime();
-				CanardLogger.d("Request for '" + request.getRequestURI() + "' served in " + ((end - begin)/1000) + " ms");
+				logger.d(EventLog.Type.WEBUSER_DOWNLOAD_COMPLETED, new Date(), request.getRemoteAddr(), request.getRequestURI());
 			} catch (Exception ex) {
 				serveInternalErrorResponse(request, response, ex);
 				final long end = System.nanoTime();
-				CanardLogger.e("Failed to serve '" + request.getRequestURI() + "' ( after " + ((end - begin)/1000) + " ms )");
+				logger.e(EventLog.Type.WEBUSER_DOWNLOAD_FAILED, new Date(), request.getRemoteAddr(), request.getRequestURI());
 			}
 		}
 	};
 
 	protected InputStream getAsset(String asset) throws IOException {
-		return context.getAssets().open(asset);
+		return service.getAssets().open(asset);
 	}
 
 
@@ -272,7 +275,7 @@ public class CanardHTTPD extends Server {
 		}
 		themeName = tmpThemeName;
 
-		final ContentWriter contentWriter = new ContentWriter(context, contextPath) {
+		final ContentWriter contentWriter = new ContentWriter(service, contextPath) {
 
 			@Override
 			protected void writeThing(Writer destination, SharedThing thing) throws IOException {
@@ -280,7 +283,7 @@ public class CanardHTTPD extends Server {
 			}
 		};
 
-		final PageWriter pageWriter = new PageWriter(context, contextPath, request) {
+		final PageWriter pageWriter = new PageWriter(service, contextPath, request) {
 			@Override
 			protected void writeThemeName(HttpServletRequest request, Writer destination, TemplateArg arg) throws IOException {
 				destination.write(themeName);
@@ -377,7 +380,7 @@ public class CanardHTTPD extends Server {
 	private void serveDynamicResource(HttpServletRequest request, HttpServletResponse response, String resource) throws IOException {
 		if (resource.startsWith("/") && resource.length() > 1) {
 			final Uri uri = Uri.parse(CommonHTMLComponent.unescapeFromUrl(resource.substring(1)));
-			final ContentResolver contentResolver = context.getContentResolver();
+			final ContentResolver contentResolver = service.getContentResolver();
 			final InputStream input;
 			try {
 				input = contentResolver.openInputStream(uri);

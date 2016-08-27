@@ -19,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import net.tetrakoopa.canardhttpd.domain.EventLog;
 import net.tetrakoopa.canardhttpd.service.sharing.SharesManager;
 import net.tetrakoopa.canardhttpd.util.ShareFeedUtil;
 import net.tetrakoopa.canardhttpd.view.action.MainAction;
@@ -28,6 +29,7 @@ import net.tetrakoopa.mdua.util.IntentUtil;
 import net.tetrakoopa.mdua.view.util.SystemUIUtil;
 
 import java.io.File;
+import java.util.Date;
 
 
 public class CanardHTTPDActivity extends AppCompatActivity {
@@ -260,8 +262,11 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 			if (!state.pickUpActivityResponseSentToService) {
 				state.pickUpActivityResponseSentToService = true;
 				if (uriFromPickupActivityResponse != null) {
-					if (ShareFeedUtil.tryAddFileToSharesElseNotify(CanardHTTPDActivity.this, getService().getSharesManager(), uriFromPickupActivityResponse))
+					if (ShareFeedUtil.tryAddFileToSharesElseNotify(CanardHTTPDActivity.this, getService().getSharesManager(), uriFromPickupActivityResponse)) {
 						mainAction.invalidateListe();
+						CanardHTTPDActivity.this.service.getLogger().log(EventLog.Severity.INFO, EventLog.Type.USER_ADDED_RESOURCE, new Date(), null);
+					}
+
 				}
 			}
 
@@ -329,8 +334,9 @@ public class CanardHTTPDActivity extends AppCompatActivity {
 					if (this.service != null) {
 						if (ShareFeedUtil.tryAddFileToSharesElseNotify(this, getService().getSharesManager(), uri)) {
 							mainAction.updateSharedThingsList();
+							CanardHTTPDActivity.this.service.getLogger().log(EventLog.Severity.INFO, EventLog.Type.USER_ADDED_RESOURCE, new Date(), null);
 						}
-					} else {
+//					} else {
 						state.pickUpActivityResponseSentToService = false;
 						uriFromPickupActivityResponse = uri;
 					}

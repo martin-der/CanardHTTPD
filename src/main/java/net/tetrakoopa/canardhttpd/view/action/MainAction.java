@@ -317,7 +317,7 @@ public class MainAction extends AbstractCommonAction implements ServiceConnectio
 				CanardHTTPDActivity.quickLogAndShowInternalError(element.getContext(), "Oops, tried to delete a null element");
 				return;
 			}
-		
+
 			SystemUIUtil.showActionCancelDialog(activity(),
 				message(R.string.dialog_confirmation_remove_share_title),
 				message(R.string.dialog_confirmation_remove_share_action_button),

@@ -129,9 +129,10 @@
 
 	<string name="eventlog_WEBUSER_REQUESTED_FORBIDEN_RESOURCE">Forbidden resource \'%1$s\' request</string>
 	<string name="eventlog_WEBUSER_REQUESTED_UNKOWN_RESOURCE">Unknown resource \'%1$s\' request</string>
-	<string name="eventlog_WEBUSER_DOWNLOAD_COMPLETED">Complete download of \'%1$s\'</string>
 	<string name="eventlog_WEBUSER_DOWNLOAD_STARTED">Start download of \'%1$s\'</string>
+	<string name="eventlog_WEBUSER_DOWNLOAD_COMPLETED">Complete download of \'%1$s\' in \'%2$s\'</string>
 	<string name="eventlog_WEBUSER_DOWNLOAD_WAS_CANCELLED">Cancel download of \'%1$s\'</string>
+	<string name="eventlog_WEBUSER_DOWNLOAD_FAILED">Download of \'%1$s\' failed : %2$s</string>
 
 	<string name="eventlog_USER_ADDED_RESOURCE">Resource \'%1$s\' added</string>
 	<string name="eventlog_USER_REMOVED_RESOURCE">Resource \'%1$s\' removed</string>
