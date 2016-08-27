@@ -43,10 +43,7 @@ public abstract class AbstractCommonAction extends AbtractViewLayout {
 		return ResourcesUtil.getString(canardHTTPDActivity, id);
 	}
 	protected String messagef(int id, Object ...objects) {
-		final String fmt = ResourcesUtil.getString(canardHTTPDActivity, id);
-		if (fmt == null)
-			return null;
-		return String.format(fmt, objects);
+		return ResourcesUtil.getStringf(canardHTTPDActivity, id, objects);
 	}
 
 }
